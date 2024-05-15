@@ -67,7 +67,8 @@ def driver():
         target_directory = work_directory + 'worktemp/'
         try:
             vector_store_id = config['vectorstore']['id']
-            grant_builder = GrantWriter()
+            api_key = config['keys']['openAIKey']
+            grant_builder = GrantWriter(api_key)
             grant_builder.add_vector_store(vector_store_id)
             grant_builder.run_assistant()
 

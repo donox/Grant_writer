@@ -10,8 +10,8 @@ evidence."""
 
 
 class GrantWriter(object):
-    def __init__(self):
-        self.client = OpenAI(api_key="sk-proj-Ng3VygmToAf4sehVA5k8T3BlbkFJfVrRFXj0pESrGEDDbM2Z")
+    def __init__(self, api_key):
+        self.client = OpenAI(api_key=api_key)
         self.vector_stores = []
         self.assistant = self.client.beta.assistants.create(
             name="Grant Writer",
