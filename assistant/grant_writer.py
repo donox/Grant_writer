@@ -8,10 +8,10 @@ indicating that you could not develop the response and, if possible, why not.  D
 evidence."""
 
 
-
 class GrantWriter(object):
-    def __init__(self, api_key):
+    def __init__(self, api_key, output_mgr):
         self.client = OpenAI(api_key=api_key)
+        self.output_mgr = output_mgr
         self.vector_stores = []
         self.assistant = self.client.beta.assistants.create(
             name="Grant Writer",
@@ -33,7 +33,7 @@ class GrantWriter(object):
         # self.message2 = self.client.beta.threads.messages.create(
         #     thread_id=self.thread.id,
         #     role="user",
-        #     content="What are the expenses for Wonders and Worries in 2023?  The necessary data is in the vector store."
+        #     content="What are the expenses for in 2023?  The necessary data is in the vector store."
         # )
 
     def run_assistant(self):
@@ -45,7 +45,7 @@ class GrantWriter(object):
                 thread_id=self.thread.id,
                 assistant_id=self.assistant.id,
                 # instructions="Display the answers with the numbers written out",
-                event_handler=EventHandler(),
+                event_handler=EventHandler(self.output_mgr),
         ) as stream:
             stream.until_done()
 
@@ -65,28 +65,38 @@ class GrantWriter(object):
 class EventHandler(AssistantEventHandler):
     """    # First, we create a EventHandler class to define
     # how we want to handle the events in the response stream."""
+    def __init__(self, output_manager):
+        self.output_manager = output_manager
+        super().__init__()
 
     @override
     def on_text_created(self, text) -> None:
-        print(f"\nassistant > ", end="", flush=True)
+        out_string = "\nassistant > "
+        # print(out_string, end="", flush=True)
+        self.output_manager.output(out_string, end="")
 
     @override
     def on_text_delta(self, delta, snapshot):
-        print(delta.value, end="", flush=True)
+        # print(delta.value, end="", flush=True)
+        self.output_manager.output(delta.value, end="")
 
     def on_tool_call_created(self, tool_call):
-        print(f"\nassistant > {tool_call.type}\n", flush=True)
+        out_string = f"\nassistant > {tool_call.type}\n"
+        # print(f"\nassistant > {tool_call.type}\n", flush=True)
+        self.output_manager.output(out_string)
 
     def on_tool_call_delta(self, delta, snapshot):
         if delta.type == 'code_interpreter':
             if delta.code_interpreter.input:
-                print(delta.code_interpreter.input, end="", flush=True)
+                # print(delta.code_interpreter.input, end="", flush=True)
+                self.output_manager.output(delta.code_interpreter.input, end="")
             if delta.code_interpreter.outputs:
-                print(f"\n\noutput >", flush=True)
+                # print(f"\n\noutput >", flush=True)
+                self.output_manager.output(f"\n\noutput >")
                 for output in delta.code_interpreter.outputs:
                     if output.type == "logs":
-                        print(f"\n{output.logs}", flush=True)
-
+                        # print(f"\n{output.logs}", flush=True)
+                        self.output_manager(f"\n{output.logs}")
 
 class MakeVectorStore(object):
     def __init__(self, client, name):

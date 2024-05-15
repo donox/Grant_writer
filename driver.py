@@ -8,6 +8,7 @@ import traceback
 from pathlib import Path
 from utilities.run_log_command import BasicLogger, list_files
 from assistant.grant_writer import GrantWriter, MakeVectorStore
+from assistant.io_manager import PrintAndSave
 
 # from external_sites.manage_google_drive import ManageGoogleDrive
 
@@ -66,9 +67,11 @@ def driver():
         logger = BasicLogger('prototyping', logs_directory)
         target_directory = work_directory + 'worktemp/'
         try:
+            outfile = "/home/don/Documents/Temp/outfile.txt"
+            output_mgr = PrintAndSave(outfile, True)
             vector_store_id = config['vectorstore']['id']
             api_key = config['keys']['openAIKey']
-            grant_builder = GrantWriter(api_key)
+            grant_builder = GrantWriter(api_key, output_mgr)
             grant_builder.add_vector_store(vector_store_id)
             grant_builder.run_assistant()
 
