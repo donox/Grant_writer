@@ -10,3 +10,6 @@ class PrintAndSave(object):
         if self.also_print:
             print(out_string, flush=True, end=end)
         self.outfile.write(out_string)
+
+    def close(self):
+        self.outfile.close()

@@ -6,12 +6,13 @@ import os
 # import shutil
 import traceback
 from pathlib import Path
-from utilities.run_log_command import BasicLogger, list_files
-from assistant.grant_writer import GrantWriter, MakeVectorStore
+from utilities.run_log_command import BasicLogger, list_files_in_directory
+from assistant.grant_writer import GrantWriter
 from assistant.io_manager import PrintAndSave
+from assistant.vector_store_manager import VectorStoreManager
+from assistant.file_manager import FileManager
 
 # from external_sites.manage_google_drive import ManageGoogleDrive
-
 
 
 # RClone config file in /home/don/.config/rclone/rclone.conf
@@ -20,10 +21,10 @@ def driver():
     # This script runs daily
     do_testing = True
 
-    start_notest = dt.time(1, 0)     # but not if between 1am and 4am
-    end_notest = dt.time(4, 0)
-    if start_notest < dt.datetime.now().time() < end_notest:
-        do_testing = False
+    # start_notest = dt.time(1, 0)     # but not if between 1am and 4am
+    # end_notest = dt.time(4, 0)
+    # if start_notest < dt.datetime.now().time() < end_notest:
+    #     do_testing = False
 
     if do_testing:
         prototyping = False
@@ -69,15 +70,37 @@ def driver():
         try:
             outfile = "/home/don/Documents/Temp/outfile.txt"
             output_mgr = PrintAndSave(outfile, True)
-            vector_store_id = config['vectorstore']['id']
-            api_key = config['keys']['openAIKey']
-            grant_builder = GrantWriter(api_key, output_mgr)
-            grant_builder.add_vector_store(vector_store_id)
-            grant_builder.run_assistant()
 
-            # store = MakeVectorStore(grant_builder.get_client(), "VStore")
-            # file_list = list_files("/home/don/PycharmProjects/grant_assistant/body_of_knowledge")
-            # res = store.make_store(file_list)
+            vector_store_id = config['keys']['vectorStore']
+            assistant_id = config['keys']['assistant']
+            api_key = config['keys']['openAIKey']
+
+            assistant_instructions = """Attempt to fill out the Letter of Intent (LOI) using information from the vector store 
+            wherever possibly.  Where you are unable to determine an appropriate response, insert a note enclosed in angle brackets 
+            indicating that you could not develop the response and, if possible, why not.  Do not guess or make up facts not in 
+            evidence."""
+
+            grant_builder = GrantWriter(api_key, output_mgr, assistant_id, vector_store_id)
+            cl = grant_builder.get_client()
+
+            # create/use file manager
+            # file_obj = FileManager(cl)
+            # file_obj.attach_file("/home/don/PycharmProjects/grant_assistant/body_of_knowledge/Annual Data/Program Report FY 2023.docx",
+            #                      "assistants")
+            # file_obj.pass_file_to_thread(grant_builder.get_thread().id)
+
+            vs = grant_builder.get_vector_stores()
+            vector_store_id = vs[0].id   # we will assume there is a single VS in use.
+            vs_mgr = VectorStoreManager(cl, None, vs_id=vector_store_id)
+            file_list = list_files_in_directory("/home/don/PycharmProjects/grant_assistant/body_of_knowledge")
+            vs_mgr.add_files_to_store(file_list)
+
+            grant_builder.update_assistant(instructions=assistant_instructions,
+                                           tools=[{"type": "file_search"}],
+                                           tool_resources={"file_search": {"vector_store_ids": [vector_store_id]}}
+                                           )
+            grant_builder.run_assistant()
+            output_mgr.close()
         except Exception as e:
             print(e)
             traceback.print_exc()

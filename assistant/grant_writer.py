@@ -2,54 +2,51 @@ from openai import OpenAI
 from openai import AssistantEventHandler
 from typing_extensions import override
 
-assistant_instructions = """Attempt to fill out the Letter of Intent (LOI) using information from the vector store 
-wherever possibly.  Where you are unable to determine an appropriate response, insert a note enclosed in angle brackets 
-indicating that you could not develop the response and, if possible, why not.  Do not guess or make up facts not in 
-evidence."""
-
 
 class GrantWriter(object):
-    def __init__(self, api_key, output_mgr):
+    def __init__(self, api_key, output_mgr, assistant_id=None, vector_store_id=None):
         self.client = OpenAI(api_key=api_key)
         self.output_mgr = output_mgr
-        self.vector_stores = []
-        self.assistant = self.client.beta.assistants.create(
-            name="Grant Writer",
-            instructions=assistant_instructions,
-            tools=[{"type": "file_search"}],
-            tool_resources={"file_search": {"vector_store_ids": []}},
-            model="gpt-4o",
-        )
+        self.vector_store_list = []
+        if assistant_id:
+            self.assistant = self.client.beta.assistants.retrieve(assistant_id)
+        else:
+            self.assistant = self.client.beta.assistants.create(
+                name="Grant Writer",
+                # instructions=assistant_instructions,
+                # tools=[{"type": "file_search"}],
+                # tool_resources={"file_search": {"vector_store_ids": []}},
+                model="gpt-4o",
+            )
+        if vector_store_id:
+            vs = self.client.beta.vector_stores.retrieve(vector_store_id)
+        else:
+            vs = self.create_vector_store("VS"+str(len(self.vector_store_list)))
+        self.vector_store_list.append(vs)
         self.thread = self.client.beta.threads.create()
-        self.test_file = self.client.files.create(file=open("/home/don/Documents/Wonders/test forms/Kronkosky - LOI.docx", "rb"),
-                                        purpose="assistants")
-        self.message = self.client.beta.threads.messages.create(
-            thread_id=self.thread.id,
-            role="user",
-            content="Fill out the LOI in the associated file using information from the vector store",
-            attachments=[{"file_id": self.test_file.id,
-                          "tools": [{"type": "file_search"}]}]
-        )
-        # self.message2 = self.client.beta.threads.messages.create(
+        # self.test_file = self.client.files.create(file=open("/home/don/Documents/Wonders/test forms/Kronkosky - LOI.docx", "rb"),
+        #                                 purpose="assistants")
+        # self.message = self.client.beta.threads.messages.create(
         #     thread_id=self.thread.id,
         #     role="user",
-        #     content="What are the expenses for in 2023?  The necessary data is in the vector store."
+        #     content="Fill out the LOI in the associated file using information from the vector store",
+        #     attachments=[{"file_id": self.test_file.id,
+        #                   "tools": [{"type": "file_search"}]}]
         # )
+        # # self.message2 = self.client.beta.threads.messages.create(
+        # #     thread_id=self.thread.id,
+        # #     role="user",
+        # #     content="What are the expenses for in 2023?  The necessary data is in the vector store."
+        # # )
 
-    def run_assistant(self):
-        # Then, we use the `stream` SDK helper
-        # with the `EventHandler` class to create the Run
-        # and stream the response.
-        # print(f"AT RUN - Assistant ID: {self.assistant.id}")
-        with self.client.beta.threads.runs.stream(
-                thread_id=self.thread.id,
-                assistant_id=self.assistant.id,
-                # instructions="Display the answers with the numbers written out",
-                event_handler=EventHandler(self.output_mgr),
-        ) as stream:
-            stream.until_done()
+    def create_vector_store(self, name):
+        vs = self.client.beta.vector_stores.create(name=name)
+        self.vector_store_list.append(vs)
+        return vs
 
     def add_vector_store(self, vector_store_id):
+        """Add vector store to an assistant."""
+        # Note the assumption that the assistant has only this one store!!!!!!!!!!!
         self.assistant = self.client.beta.assistants.update(
             assistant_id=self.assistant.id,
             tool_resources={"file_search": {"vector_store_ids": [vector_store_id]}}
@@ -58,8 +55,49 @@ class GrantWriter(object):
         # print(f"AT ADD - Assistant ID: {self.assistant.id}")
         # print(f"VS: {vector_store_id}, {self.vector_stores}")
 
+    def update_assistant(self, description=None, instructions=None, metadata=None, name=None,
+                         response_format=None, temperature=None, tool_resources=None, tools=None, top_p=None):
+        params = {"assistant_id": self.assistant.id}
+        if description:
+            params["description"] = description
+        if instructions:
+            params["instructions"] = instructions
+        if metadata:
+            params["metadata"] = metadata
+        if name:
+            params["name"] = name
+        if response_format:
+            params["response_format"] = response_format
+        if temperature:
+            params["temperature"] = temperature
+        if tool_resources:
+            params["tool_resources"] = tool_resources
+        if tools:
+            params["tools"] = tools
+        if top_p:
+            params["top_p"] = top_p
+        self.assistant = self.client.beta.assistants.update(**params)
+
+    def run_assistant(self):
+        # Then, we use the `stream` SDK helper
+        # with the `EventHandler` class to create the Run
+        # and stream the response.
+        with self.client.beta.threads.runs.stream(
+                thread_id=self.thread.id,
+                assistant_id=self.assistant.id,
+                # instructions="Display the answers with the numbers written out",
+                event_handler=EventHandler(self.output_mgr),
+        ) as stream:
+            stream.until_done()
+
     def get_client(self):
         return self.client
+
+    def get_vector_stores(self):
+        return self.vector_store_list
+
+    def get_thread(self):
+        return self.thread
 
 
 class EventHandler(AssistantEventHandler):
@@ -98,18 +136,5 @@ class EventHandler(AssistantEventHandler):
                         # print(f"\n{output.logs}", flush=True)
                         self.output_manager(f"\n{output.logs}")
 
-class MakeVectorStore(object):
-    def __init__(self, client, name):
-        self.client = client
-        self.store_name = name
-        self.vector_store = client.beta.vector_stores.create(name=name)
 
-    def make_store(self, file_list):
-        file_streams = [open(path, "rb") for path in file_list]
 
-        # Use the upload and poll SDK helper to upload the files, add them to the vector store,
-        # and poll the status of the file batch for completion.
-        file_batch = self.client.beta.vector_stores.file_batches.upload_and_poll(
-            vector_store_id=self.vector_store.id, files=file_streams
-        )
-        return file_batch

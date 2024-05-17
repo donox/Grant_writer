@@ -63,7 +63,7 @@ def run_shell_command(command_line, logger, outfile=False):
     return True
 
 
-def list_files(directory_path):
+def list_files_in_directory(directory_path):
     # Convert to Path object
     directory = Path(directory_path)
 
