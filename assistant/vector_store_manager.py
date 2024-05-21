@@ -1,7 +1,7 @@
 
 
 class VectorStoreManager(object):
-    def __init__(self, client, name, vs_id=None):
+    def __init__(self, client, name, vs_id=None, show_json=False):
         self.client = client
         if vs_id:
             self.vector_store = self.client.beta.vector_stores.retrieve(vs_id)

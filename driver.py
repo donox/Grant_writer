@@ -7,10 +7,11 @@ import os
 import traceback
 from pathlib import Path
 from utilities.run_log_command import BasicLogger, list_files_in_directory
-from assistant.grant_writer import GrantWriter
+from assistant.grant_writer import GrantWriter, WriterAssistant
 from assistant.io_manager import PrintAndSave
 from assistant.vector_store_manager import VectorStoreManager
 from assistant.file_manager import FileManager
+from assistant.message_manager import MessageManager
 
 # from external_sites.manage_google_drive import ManageGoogleDrive
 
@@ -75,12 +76,21 @@ def driver():
             assistant_id = config['keys']['assistant']
             api_key = config['keys']['openAIKey']
 
-            assistant_instructions = """Attempt to fill out the Letter of Intent (LOI) using information from the vector store 
-            wherever possibly.  Where you are unable to determine an appropriate response, insert a note enclosed in angle brackets 
-            indicating that you could not develop the response and, if possible, why not.  Do not guess or make up facts not in 
+            # assistant_id = None
+            assistant_instructions = """Attempt to fill out the Letter of Intent (LOI) using information from the vector store
+            wherever possibly.  Where you are unable to determine an appropriate response, insert a note enclosed in angle brackets
+            indicating that you could not develop the response and, if possible, why not.  Do not guess or make up facts not in
             evidence."""
+            assistant_instructions = """Use an informal voice. """
 
-            grant_builder = GrantWriter(api_key, output_mgr, assistant_id, vector_store_id)
+            # USE ChatCompletion API
+            # builder = WriterAssistant("My Assistent", api_key)
+            # thread_id = builder.get_thread_id()
+            # out_message = builder.get_response(thread_id, "Do Something")
+
+            #USE Assistants API
+            show_json = True
+            grant_builder = GrantWriter(api_key, output_mgr, assistant_id, vector_store_id, show_json=show_json)    # FIX SIGNATURE
             cl = grant_builder.get_client()
 
             # create/use file manager
@@ -91,7 +101,7 @@ def driver():
 
             vs = grant_builder.get_vector_stores()
             vector_store_id = vs[0].id   # we will assume there is a single VS in use.
-            vs_mgr = VectorStoreManager(cl, None, vs_id=vector_store_id)
+            vs_mgr = VectorStoreManager(cl, None, vs_id=vector_store_id, show_json=show_json)
             file_list = list_files_in_directory("/home/don/PycharmProjects/grant_assistant/body_of_knowledge")
             vs_mgr.add_files_to_store(file_list)
 
@@ -99,6 +109,13 @@ def driver():
                                            tools=[{"type": "file_search"}],
                                            tool_resources={"file_search": {"vector_store_ids": [vector_store_id]}}
                                            )
+
+            # message = MessageManager(cl, grant_builder.get_thread())
+            # content = "Fill out the LOI in the associated file using information from the vector store"
+            # message.add_content(content, "user")
+            # message.add_file_attachment("/home/don/Documents/Wonders/test forms/Kronkosky - LOI.docx")
+            # message.create_message()
+
             grant_builder.run_assistant()
             output_mgr.close()
         except Exception as e:
