@@ -1,3 +1,4 @@
+from openai import OpenAI
 
 
 class MessageManager(object):
@@ -21,6 +22,8 @@ class MessageManager(object):
                                  "tools": [{"type": "file_search"}]})
 
     def create_message(self):
+        if not self.content or not self.role:
+            raise AssertionError("No content or role for message")
         try:
             self.message = self.client.beta.threads.messages.create(
                 thread_id=self.thread.id,
@@ -28,20 +31,10 @@ class MessageManager(object):
                 content=self.content,
                 attachments=self.attachments,
             )
+            return self.message
         except Exception as e:
             print(e)
 
     def get_message(self):
         return self.message
 
-
-
-
-        # self.test_file = self.client.files.create(file=open("/home/don/Documents/Wonders/test forms/Kronkosky - LOI.docx", "rb"),
-        #                                 purpose="assistants")
-        # self.message = self.client.beta.threads.messages.create(
-        #     thread_id=self.thread.id,
-        #     role="user",
-        #     content="Fill out the LOI in the associated file using information from the vector store",
-        #     attachments=[{"file_id": self.test_file.id,
-        #                   "tools": [{"type": "file_search"}]}]

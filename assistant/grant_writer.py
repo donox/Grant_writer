@@ -1,14 +1,23 @@
 from openai import OpenAI, ChatCompletion
 from openai import AssistantEventHandler
 from typing_extensions import override
+from assistant.vector_store_manager import VectorStoreManager, get_known_vector_stores
+from assistant.message_manager import MessageManager
 
+
+#  URL's  used to try to get this to work!!
+#  https://github.com/openai/openai-python/blob/main/src/openai/resources/beta/threads/threads.py
+#  https://platform.openai.com/docs/assistants/tools/file-search
+#  https://platform.openai.com/assistants
 
 class GrantWriter(object):
-    def __init__(self, api_key, output_mgr, assistant_id=None, instructions=None, vector_store_id=None, show_json=False):
+    def __init__(self, api_key, output_mgr, assistant_id=None, instructions=None, vector_store_id=None,
+                 show_json=False):
         self.show_json = show_json
         self.client = OpenAI(api_key=api_key)
         self.output_mgr = output_mgr
-        self.vector_store_list = []
+        self.vector_store_list = []  # list of vector_store_manager objects that have been instantiated
+        self.message_list = []
         if assistant_id:
             self.assistant = self.client.beta.assistants.retrieve(assistant_id)
         else:
@@ -22,29 +31,49 @@ class GrantWriter(object):
         if self.show_json:
             self.output_mgr.output_json(self.assistant.model_dump_json(), end="", header="Initial Assistant")
 
-        if vector_store_id:
-            vs = self.client.beta.vector_stores.retrieve(vector_store_id)
-        else:
-            vs = self.create_vector_store("VS"+str(len(self.vector_store_list)))
+        # if vector_store_id:
+        #     vs = self.client.beta.vector_stores.retrieve(vector_store_id)
+        # else:
+        #     vs = self.create_vector_store("VS" + str(len(self.vector_store_list)))
+        # self.vector_store_list.append(vs)
+        # if show_json:
+        #     self.output_mgr.output_json(vs.get_vector_store_object().model_dump_json(), header="Initial Vector Store")
+        self.thread = self.client.beta.threads.create()
+        # self.test_file = self.client.files.create(file=open("/home/don/Documents/Wonders/test forms/Kronkosky - LOI.docx", "rb"),
+        #                                           purpose="assistants")
+
+    def create_vector_store(self, name, vector_store_id=None, show_json=False):
+        vs = VectorStoreManager(self.client, name, vs_id=vector_store_id, show_json=show_json)
         self.vector_store_list.append(vs)
         if show_json:
-            self.output_mgr.output_json(vs.model_dump_json(), header="Initial Vector Store")
-        self.thread = self.client.beta.threads.create()
-        self.test_file = self.client.files.create(file=open("/home/don/Documents/Wonders/test forms/Kronkosky - LOI.docx", "rb"),
-                                                  purpose="assistants")
-        self.message = self.client.beta.threads.messages.create(
-            thread_id=self.thread.id,
-            role="user",
-            content="What cities have offices?",
-            attachments=[{"file_id": self.test_file.id,
-                          "tools": [{"type": "file_search"}]}]
+            self.output_mgr.output_json(vs.get_vector_store_object().model_dump_json())
+        return vs
+
+    def add_vector_store(self, vector_store_id):
+        """Add vector store to an assistant."""
+        # Note the assumption that the assistant has only this one store!!!!!!!!!!!
+        self.assistant = self.client.beta.assistants.update(
+            assistant_id=self.assistant.id,
+            tool_resources={"file_search": {"vector_store_ids": [vector_store_id]}}
         )
-        if show_json:
-            self.output_mgr.output_json(self.message.model_dump_json(), header="Message: 1")
-        #  URL's being used to try to get this to work!!
-        #  https://github.com/openai/openai-python/blob/main/src/openai/resources/beta/threads/threads.py
-        #  https://platform.openai.com/docs/assistants/tools/file-search
-        #  https://platform.openai.com/assistants
+
+    def add_message(self, role, content, add_file_path=None):
+        msg = MessageManager(self.client, self.thread)
+        msg.add_content(content, role)
+        if add_file_path:
+            msg.add_file_attachment(add_file_path)
+        msg_obj = msg.create_message()
+        if self.show_json:
+            self.output_mgr.output_json(msg_obj.model_dump_json(), header="Message: 1")
+        return msg
+
+        # self.message = self.client.beta.threads.messages.create(
+        #     thread_id=self.thread.id,
+        #     role="user",
+        #     content="What cities have offices?",
+        #     attachments=[{"file_id": self.test_file.id,
+        #                   "tools": [{"type": "file_search"}]}]
+        # )
 
         self.message2 = self.client.beta.threads.messages.create(
             thread_id=self.thread.id,
@@ -55,24 +84,6 @@ class GrantWriter(object):
             self.output_mgr.output_json(self.message.model_dump_json(), header="Message: 2")
         if show_json:
             self.output_mgr.output_json(self.thread.model_dump_json(), header="Thread After Message Create")
-
-    def create_vector_store(self, name, show_json=False):
-        vs = self.client.beta.vector_stores.create(name=name)
-        self.vector_store_list.append(vs)
-        if show_json:
-            self.output_mgr.output_json(vs.model_dump_json())
-        return vs
-
-    def add_vector_store(self, vector_store_id):
-        """Add vector store to an assistant."""
-        # Note the assumption that the assistant has only this one store!!!!!!!!!!!
-        self.assistant = self.client.beta.assistants.update(
-            assistant_id=self.assistant.id,
-            tool_resources={"file_search": {"vector_store_ids": [vector_store_id]}}
-        )
-        # self.vector_stores.append(vector_store_id)
-        # print(f"AT ADD - Assistant ID: {self.assistant.id}")
-        # print(f"VS: {vector_store_id}, {self.vector_stores}")
 
     def update_assistant(self, description=None, instructions=None, metadata=None, name=None,
                          response_format=None, temperature=None, tool_resources=None, tools=None, top_p=None):
@@ -129,6 +140,7 @@ class GrantWriter(object):
 class EventHandler(AssistantEventHandler):
     """    # First, we create a EventHandler class to define
     # how we want to handle the events in the response stream."""
+
     def __init__(self, output_manager):
         self.output_manager = output_manager
         super().__init__()
@@ -209,6 +221,3 @@ class WriterAssistant(object):
 
     def get_thread_id(self):
         return self.thread_id
-
-
-

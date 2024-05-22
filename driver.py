@@ -12,6 +12,7 @@ from assistant.io_manager import PrintAndSave
 from assistant.vector_store_manager import VectorStoreManager
 from assistant.file_manager import FileManager
 from assistant.message_manager import MessageManager
+from ui_control.command_processor import Commands
 
 # from external_sites.manage_google_drive import ManageGoogleDrive
 
@@ -29,7 +30,8 @@ def driver():
 
     if do_testing:
         prototyping = False
-        write_grants = True
+        write_grants = False
+        run_commands = True
     else:
         prototyping = False
         write_grants = False
@@ -65,6 +67,20 @@ def driver():
     summary_logger = BasicLogger('summary_log', logs_directory)     # Logger - see use below
     summary_logger.make_info_entry('Start Summary Log')
 
+    if run_commands:
+        logger = BasicLogger('prototyping', logs_directory)
+        target_directory = work_directory + 'worktemp/'
+        try:
+            outfile = "/home/don/Documents/Temp/outfile.txt"
+            cmd_path = '/home/don/PycharmProjects/grant_assistant/Temp/commands.json'
+            handler = Commands(cmd_path, config, outfile)
+            handler.process_commands()
+
+        except Exception as e:
+            print(e)
+            traceback.print_exc()
+        logger.close_logger()
+
     if write_grants:
         logger = BasicLogger('prototyping', logs_directory)
         target_directory = work_directory + 'worktemp/'
@@ -89,19 +105,20 @@ def driver():
             # out_message = builder.get_response(thread_id, "Do Something")
 
             #USE Assistants API
-            show_json = True
+            show_json = False
             grant_builder = GrantWriter(api_key, output_mgr, assistant_id, vector_store_id, show_json=show_json)    # FIX SIGNATURE
             cl = grant_builder.get_client()
 
             # create/use file manager
-            # file_obj = FileManager(cl)
-            # file_obj.attach_file("/home/don/PycharmProjects/grant_assistant/body_of_knowledge/Annual Data/Program Report FY 2023.docx",
-            #                      "assistants")
-            # file_obj.pass_file_to_thread(grant_builder.get_thread().id)
+            file_obj = FileManager(cl)
+            file_obj.attach_file("/home/don/PycharmProjects/grant_assistant/body_of_knowledge/Annual Data/Program Report FY 2023.docx",
+                                 "user_data")
+            file_obj.pass_file_to_thread(grant_builder.get_thread().id)
 
-            vs = grant_builder.get_vector_stores()
-            vector_store_id = vs[0].id   # we will assume there is a single VS in use.
-            vs_mgr = VectorStoreManager(cl, None, vs_id=vector_store_id, show_json=show_json)
+            vs_mgr = grant_builder.create_vector_store("VS1", vector_store_id=vector_store_id, show_json=show_json)
+            vs_list = grant_builder.get_vector_stores()
+            vector_store_id = vs_list[0].get_vector_store_id()   # we will assume there is a single VS in use.
+
             file_list = list_files_in_directory("/home/don/PycharmProjects/grant_assistant/body_of_knowledge")
             vs_mgr.add_files_to_store(file_list)
 
@@ -109,6 +126,16 @@ def driver():
                                            tools=[{"type": "file_search"}],
                                            tool_resources={"file_search": {"vector_store_ids": [vector_store_id]}}
                                            )
+            role = "user"
+            content = "What cities have offices?"
+            msg = grant_builder.add_message(role, content)
+            # self.message = self.client.beta.threads.messages.create(
+            #     thread_id=self.thread.id,
+            #     role="user",
+            #     content="What cities have offices?",
+            #     attachments=[{"file_id": self.test_file.id,
+            #                   "tools": [{"type": "file_search"}]}]
+            # )
 
             # message = MessageManager(cl, grant_builder.get_thread())
             # content = "Fill out the LOI in the associated file using information from the vector store"
@@ -136,7 +163,6 @@ def driver():
             print(e)
             traceback.print_exc()
         logger.close_logger()
-
 
     summary_logger.make_info_entry('Summary Log Entries Completed')
     summary_logger.close_logger()
