@@ -86,7 +86,7 @@ class GrantWriter(object):
             self.output_mgr.output_json(self.thread.model_dump_json(), header="Thread After Message Create")
 
     def update_assistant(self, description=None, instructions=None, metadata=None, name=None,
-                         response_format=None, temperature=None, tool_resources=None, tools=None, top_p=None):
+                         response_format=None, temperature=None, tool_resources=None, tools=None, top_p=None, **kwargs):
         params = {"assistant_id": self.assistant.id}
         if description:
             params["description"] = description

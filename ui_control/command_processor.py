@@ -15,10 +15,14 @@ class Commands(object):
         self.stop_encountered = False
         self.supported_commands = {'stop': self.cmd_stop,
                                    'setup': self.cmd_setup,
+                                   'update_assistant': self.cmd_update_assistant,
+                                   "attach_file_to_assistant": self.cmd_attach_file_to_assistant,
+                                   "add_message": self.cmd_add_message,
                                    }
         self.grant_builder = None
         self.output_manager = None
         self.client = None  # OpenAI assistant
+        self.file_manager = None
         self.vector_store_manager = None
         self.vector_store_list = []
         self.vector_store_id = None  # This is assuming there is only one VS in use
@@ -70,3 +74,22 @@ class Commands(object):
                                                                            show_json=self.show_json)
         self.vector_store_list = self.grant_builder.get_vector_stores()
         self.vector_store_id = self.vector_store_list[0].get_vector_store_id()  # assume there is a single VS in use.
+
+    def cmd_update_assistant(self, cmd_dict):
+        self.grant_builder.update_assistant(**cmd_dict)
+
+    def cmd_attach_file_to_assistant(self, cmd_dict):
+        try:
+            if not self.file_manager:
+                self.file_manager = FileManager(self.client)
+            purpose = cmd_dict['purpose']
+            if purpose == 'user':
+                purpose = 'user_data'
+            self.file_manager.attach_file(cmd_dict['file_path'], purpose)
+            self.file_manager.pass_file_to_thread(self.grant_builder.get_thread().id)
+        except Exception as e:
+            print(f"error in file attachment: {e.args}")
+
+    def cmd_add_message(self, cmd_dict):
+        msg = self.grant_builder.add_message(cmd_dict['role'], cmd_dict['content'])
+        # need to add to message record list??
