@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Wonders and Worries{% endblock %}</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" type="text/css"
+          href="https://cdnjs.cloudflare.com/ajax/libs/jquery-te/1.4.0/jquery-te.min.css">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="{{ url_for('start.index') }}"> Wonders and Worries </a>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('start.index') }}">Home</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('start.add_message') }}">Add Message</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+<div id="jstree"></div>
+<div class="container mt-4">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }}">{{ message }}</div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+</div>
+<script src="{{ url_for('static', filename='js/jstree.min.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-te/1.4.0/jquery-te.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // Make an AJAX request to the Flask route
+        $.ajax({
+            url: '/get_tree_data',
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                console.log('Received data from server:', data);
+
+                // Create the jstree
+                $('#jstree').jstree({
+                    'core': {
+                        'data': data
+                    },
+                    'plugins': ['types'] // Enable types plugin
+                })
+                    .on('loaded.jstree', function () {
+                        console.log('jstree loaded');
+                    })
+                    .on('open_node.jstree', function (e, data) {
+                        console.log('Node opened:', data.node.text);
+                    })
+                    .on('close_node.jstree', function (e, data) {
+                        console.log('Node closed:', data.node.text);
+                    });
+            },
+            error: function (xhr, status, error) {
+                console.error('Error:', error);
+            }
+        });
+
+        $('#jstree').on("changed.jstree", function (e, data) {
+            console.log(data.selected);
+        });
+               // Set the initial content from the server
+            var initialContent = "{{ content|safe }}";
+            $('.jqte-test').jqte();
+            $('.jqte-test').jqteVal(initialContent);
+
+            function loadContent(url) {
+                if ($('#save-checkbox').is(':checked')) {
+                    $.post('/save', $('#editor-form').serialize(), function() {
+                        $.post(url, function(data) {
+                            $('.jqte-test').jqteVal(data.content);
+                        });
+                    });
+                } else {
+                    $.post(url, function(data) {
+                        $('.jqte-test').jqteVal(data.content);
+                    });
+                }
+            }
+
+            $('#next').click(function() {
+                loadContent('/next');
+            });
+
+            $('#previous').click(function() {
+                loadContent('/previous');
+            });
+    });
+</script>
+</body>
+</html>

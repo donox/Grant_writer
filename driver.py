@@ -13,6 +13,7 @@ from assistant.vector_store_manager import VectorStoreManager
 from assistant.file_manager import FileManager
 from assistant.message_manager import MessageManager
 from ui_control.command_processor import Commands
+from ui_client import create_app as app_ui
 
 # from external_sites.manage_google_drive import ManageGoogleDrive
 
@@ -31,7 +32,8 @@ def driver():
     if do_testing:
         prototyping = False
         write_grants = False
-        run_commands = True
+        run_commands = False
+        run_ui = True
     else:
         prototyping = False
         write_grants = False
@@ -67,8 +69,20 @@ def driver():
     summary_logger = BasicLogger('summary_log', logs_directory)     # Logger - see use below
     summary_logger.make_info_entry('Start Summary Log')
 
+    if run_ui:
+        logger = BasicLogger('run_UI', logs_directory)
+        target_directory = work_directory + 'worktemp/'
+        try:
+            flask_key = config['keys']['flaskKey']
+            app = app_ui(flask_key)
+            app.run(debug=True)
+
+        except Exception as e:
+            print(e)
+            traceback.print_exc()
+        logger.close_logger()
     if run_commands:
-        logger = BasicLogger('prototyping', logs_directory)
+        logger = BasicLogger('run_commands', logs_directory)
         target_directory = work_directory + 'worktemp/'
         try:
             outfile = "/home/don/Documents/Temp/outfile.txt"
@@ -82,7 +96,7 @@ def driver():
         logger.close_logger()
 
     if write_grants:
-        logger = BasicLogger('prototyping', logs_directory)
+        logger = BasicLogger('write_grants', logs_directory)
         target_directory = work_directory + 'worktemp/'
         try:
             outfile = "/home/don/Documents/Temp/outfile.txt"

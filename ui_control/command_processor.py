@@ -18,6 +18,7 @@ class Commands(object):
                                    'update_assistant': self.cmd_update_assistant,
                                    "attach_file_to_assistant": self.cmd_attach_file_to_assistant,
                                    "add_message": self.cmd_add_message,
+                                   "run_query": self.cmd_run_query,
                                    }
         self.grant_builder = None
         self.output_manager = None
@@ -93,3 +94,7 @@ class Commands(object):
     def cmd_add_message(self, cmd_dict):
         msg = self.grant_builder.add_message(cmd_dict['role'], cmd_dict['content'])
         # need to add to message record list??
+
+    def cmd_run_query(self, cmd_dict):
+        self.grant_builder.run_assistant()
+

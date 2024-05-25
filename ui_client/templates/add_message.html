@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Message - Flask Chat App{% endblock %}
+
+{% block content %}
+<h1 class="mt-4">Add Message</h1>
+<form method="POST">
+    <div class="form-group">
+        <label for="message">Message:</label>
+        <input type="text" class="form-control" id="message" name="message" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Add</button>
+</form>
+{% endblock %}
