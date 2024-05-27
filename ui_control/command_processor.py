@@ -19,6 +19,9 @@ class Commands(object):
                                    "attach_file_to_assistant": self.cmd_attach_file_to_assistant,
                                    "add_message": self.cmd_add_message,
                                    "run_query": self.cmd_run_query,
+                                   "get_message_list": self.cmd_get_message_list,
+                                   "get_last_results": self.cmd_get_last_results,
+                                   "get_text_responses": self.cmd_get_text_responses,
                                    }
         self.grant_builder = None
         self.output_manager = None
@@ -93,8 +96,28 @@ class Commands(object):
 
     def cmd_add_message(self, cmd_dict):
         msg = self.grant_builder.add_message(cmd_dict['role'], cmd_dict['content'])
-        # need to add to message record list??
+        return msg
 
     def cmd_run_query(self, cmd_dict):
         self.grant_builder.run_assistant()
+        thread = self.grant_builder.get_thread()
+        self.grant_builder.update_message_lists(thread.id)          #  MULTIPLE THREADS
 
+    def cmd_get_message_list(self, thread_id):
+        result = self.grant_builder.get_messages(thread_id)
+        return result
+
+    def cmd_get_last_results(self):
+        result = self.cmd_get_message_list(self.grant_builder.get_thread().id)
+        if result is None or result is []:
+            return "There were no results to return"
+        if isinstance(result, list) and len(result) > 1:
+            result = [result[-1]]
+        return result
+
+    def cmd_get_text_responses(self):
+        msg_mgrs = self.cmd_get_last_results()
+        response = ""
+        for mgr in msg_mgrs:
+            response += mgr.create_response_text() + "\n"
+        return response

@@ -13,6 +13,7 @@ from assistant.vector_store_manager import VectorStoreManager
 from assistant.file_manager import FileManager
 from assistant.message_manager import MessageManager
 from ui_control.command_processor import Commands
+from ui_control.client_interface import ClientInterface
 from ui_client import create_app as app_ui
 
 # from external_sites.manage_google_drive import ManageGoogleDrive
@@ -32,8 +33,8 @@ def driver():
     if do_testing:
         prototyping = False
         write_grants = False
-        run_commands = False
-        run_ui = True
+        run_commands = True
+        run_ui = False
     else:
         prototyping = False
         write_grants = False
@@ -88,7 +89,11 @@ def driver():
             outfile = "/home/don/Documents/Temp/outfile.txt"
             cmd_path = '/home/don/PycharmProjects/grant_assistant/Temp/commands.json'
             handler = Commands(cmd_path, config, outfile)
-            handler.process_commands()
+            client_ui = ClientInterface(handler)
+            flask_key = config['keys']['flaskKey']
+            app = app_ui(flask_key, client_ui)
+            app.run(debug=True)
+            # handler.process_commands()
 
         except Exception as e:
             print(e)

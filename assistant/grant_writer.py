@@ -1,3 +1,5 @@
+from typing import List, Any
+
 from openai import OpenAI, ChatCompletion
 from openai import AssistantEventHandler
 from typing_extensions import override
@@ -63,27 +65,25 @@ class GrantWriter(object):
         if add_file_path:
             msg.add_file_attachment(add_file_path)
         msg_obj = msg.create_message()
+        self.message_list.append(msg)       # add MessageManager object
         if self.show_json:
-            self.output_mgr.output_json(msg_obj.model_dump_json(), header="Message: 1")
+            self.output_mgr.output_json(msg_obj.model_dump_json(), header="Message: 1")    # HEader???
         return msg
 
-        # self.message = self.client.beta.threads.messages.create(
-        #     thread_id=self.thread.id,
-        #     role="user",
-        #     content="What cities have offices?",
-        #     attachments=[{"file_id": self.test_file.id,
-        #                   "tools": [{"type": "file_search"}]}]
-        # )
-
-        self.message2 = self.client.beta.threads.messages.create(
-            thread_id=self.thread.id,
-            role="user",
-            content="What are the expenses for in 2023?  The necessary data is in the vector store."
-        )
-        if show_json:
-            self.output_mgr.output_json(self.message.model_dump_json(), header="Message: 2")
-        if show_json:
-            self.output_mgr.output_json(self.thread.model_dump_json(), header="Thread After Message Create")
+    def get_messages(self, thread_id):
+        messages = self.client.beta.threads.messages.list(thread_id=thread_id)
+        # Check if we are maintaining list of MessageManagers equal to message list from API
+        # If not, we have a leak of some sort.
+        thread_messages: list[Any] = [x for x in self.message_list if x.get_thread_id() == thread_id]
+        # if len(messages.data) != len(thread_messages):            #  THIS COMPARES messages to MessageManagers!!!
+        #     message_ids = [x.get_message_id() for x in thread_messages]
+        #     api_message_ids = [x.id for x in messages.data]
+        #     # produce list of messages that are missing in one of the input lists
+        #     compared_result = [x for x in message_ids + api_message_ids if x not in message_ids or
+        #                        x not in api_message_ids]
+        #     foo = 3
+        #     raise ValueError(f"Message lists out of sync.  {compared_result} is missing in an input list")
+        return thread_messages
 
     def update_assistant(self, description=None, instructions=None, metadata=None, name=None,
                          response_format=None, temperature=None, tool_resources=None, tools=None, top_p=None, **kwargs):
@@ -115,7 +115,7 @@ class GrantWriter(object):
         # with the `EventHandler` class to create the Run
         # and stream the response.
         with self.client.beta.threads.runs.stream(
-                thread_id=self.thread.id,
+                thread_id=self.thread.id,                       # TODO: address multiple threads
                 assistant_id=self.assistant.id,
                 # instructions="Display the answers with the numbers written out",
                 event_handler=EventHandler(self.output_mgr),
@@ -126,6 +126,41 @@ class GrantWriter(object):
             ml = self.client.beta.threads.messages.list(thread_id=self.thread.id)
             for nbr, msg in enumerate(ml.data):
                 self.output_mgr.output_json(msg.model_dump_json(), header=f"MSG: {nbr} ", end="")
+
+    def update_message_lists(self, thread_id):
+        """Update and verify message lists for specific thread.
+
+        Presume messages for a thread are not significantly long (performance issues) and assume that
+            update_message_lists is called at least once for each non-assistant message.
+            -Create sets of message id's corresponding to all messages in thread and another from self.message_list.
+            -Verify there are no messages in self.message_list that are not in those from api.
+            -Remove all from api list that exist in self.message_list.
+            -Remaining list should all be responses (role: assistant) for last message in self.message_list.
+            -Add responses to most recent user/system message.  Most recent should be first in decimated list.  Add
+                to MessageManger in reverse order.
+        """
+        messages = self.client.beta.threads.messages.list(thread_id=thread_id)
+        thread_ids = set()
+        for msg in messages:
+            thread_ids.add(msg.id)
+        existing_ids = set()
+        for msg in self.message_list:
+            existing_ids.add(msg.get_message_id())
+            for msg_id in msg.get_response_ids():
+                existing_ids.add(msg_id)
+        x = existing_ids.difference(thread_ids)
+        if x:
+            print(f"Messages found not in current thread: {x}")
+            raise SystemError(f"Messages found not in current thread: {x}")
+        y = thread_ids.difference(existing_ids)
+        add_list = [z for z in thread_ids if z in y]
+        add_list.reverse()
+        last_msg_mgr = self.message_list[-1]
+        # print(f"query: {last_msg_mgr.get_message().content}")
+        for msg_id in add_list:
+            msg = [x for x in messages if x.id == msg_id][0]
+            last_msg_mgr.add_response(msg)
+            print(f"response: {msg.content}")
 
     def get_client(self):
         return self.client
@@ -175,6 +210,8 @@ class EventHandler(AssistantEventHandler):
                         self.output_manager(f"\n{output.logs}")
 
 
+# See intro to https://cookbook.openai.com/examples/assistants_api_overview_python to
+# explain difference between Completions (used here) and Assistants API.
 class WriterAssistant(object):
     def __init__(self, name, api_key, thread_id=None):
         self.name = name

@@ -24,17 +24,20 @@
         </ul>
     </div>
 </nav>
-<div id="jstree"></div>
-<div class="container mt-4">
+<!-- Flashed messages -->
+<div class="container mt-2">
     {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-    {% for category, message in messages %}
-    <div class="alert alert-{{ category }}">{{ message }}</div>
-    {% endfor %}
-    {% endif %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
     {% endwith %}
-    {% block content %}{% endblock %}
 </div>
+<div> {% block content %}{% endblock %}</div>
+<div id="jstree"></div>
+
+
 <script src="{{ url_for('static', filename='js/jstree.min.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
@@ -47,8 +50,8 @@
             type: 'GET',
             dataType: 'json',
             success: function (data) {
-                console.log('Received data from server:', data);
-
+                // console.log('Received data from server:', data);
+                // $('.message-edit').jqte();
                 // Create the jstree
                 $('#jstree').jstree({
                     'core': {
@@ -56,15 +59,15 @@
                     },
                     'plugins': ['types'] // Enable types plugin
                 })
-                    .on('loaded.jstree', function () {
-                        console.log('jstree loaded');
-                    })
-                    .on('open_node.jstree', function (e, data) {
-                        console.log('Node opened:', data.node.text);
-                    })
-                    .on('close_node.jstree', function (e, data) {
-                        console.log('Node closed:', data.node.text);
-                    });
+                // .on('loaded.jstree', function () {
+                //     console.log('jstree loaded');
+                // })
+                // .on('open_node.jstree', function (e, data) {
+                //     console.log('Node opened:', data.node.text);
+                // })
+                // .on('close_node.jstree', function (e, data) {
+                //     console.log('Node closed:', data.node.text);
+                // });
             },
             error: function (xhr, status, error) {
                 console.error('Error:', error);
@@ -74,32 +77,44 @@
         $('#jstree').on("changed.jstree", function (e, data) {
             console.log(data.selected);
         });
-               // Set the initial content from the server
-            var initialContent = "{{ content|safe }}";
-            $('.jqte-test').jqte();
-            $('.jqte-test').jqteVal(initialContent);
 
-            function loadContent(url) {
-                if ($('#save-checkbox').is(':checked')) {
-                    $.post('/save', $('#editor-form').serialize(), function() {
-                        $.post(url, function(data) {
-                            $('.jqte-test').jqteVal(data.content);
-                        });
+        // Set the initial content for messages
+        var initialContent = "{{ content|safe }}";
+        $('.message-edit').jqte();
+        $('.message-edit').jqteVal(initialContent);
+
+        function loadContent(url) {
+            if ($('#save-checkbox').is(':checked')) {
+                $.post('/save', $('#editor-form').serialize(), function () {
+                    $.post(url, function (data) {
+                        console.log(data);
+                        $('.message-edit').jqteVal(data.content);
                     });
-                } else {
-                    $.post(url, function(data) {
-                        $('.jqte-test').jqteVal(data.content);
-                    });
-                }
+                });
+            } else {
+                $.post(url, function (data) {
+                    $('.message-edit').jqteVal(data.content);
+                });
             }
+        }
 
-            $('#next').click(function() {
-                loadContent('/next');
-            });
+        $('#next').click(function () {
+            loadContent('/next');
+        });
 
-            $('#previous').click(function() {
-                loadContent('/previous');
+        $('#previous').click(function () {
+            loadContent('/previous');
+        });
+        $('#query').click(function () {
+            // Get the current content of the editor
+            var currentContent = $('#editor-form').serialize();
+
+            // Send the current content to the server and load the returned data
+            $.post('/query', {content: currentContent}, function (data) {
+                let formattedText = data.content.replace(/\n/g, "<br>")
+                $('#query-result').html(formattedText);
             });
+        });
     });
 </script>
 </body>
