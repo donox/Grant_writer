@@ -7,14 +7,15 @@ import os
 import traceback
 from pathlib import Path
 from utilities.run_log_command import BasicLogger, list_files_in_directory
-from assistant.grant_writer import GrantWriter, WriterAssistant
+from assistant.grant_writer import GrantWriter   # , WriterAssistant
 from assistant.io_manager import PrintAndSave
 from assistant.vector_store_manager import VectorStoreManager
 from assistant.file_manager import FileManager
-from assistant.message_manager import MessageManager
+from assistant.message import Message
 from ui_control.command_processor import Commands
 from ui_control.client_interface import ClientInterface
 from ui_client import create_app as app_ui
+from openai import OpenAI
 
 # from external_sites.manage_google_drive import ManageGoogleDrive
 
@@ -91,7 +92,8 @@ def driver():
             handler = Commands(cmd_path, config, outfile)
             client_ui = ClientInterface(handler)
             flask_key = config['keys']['flaskKey']
-            app = app_ui(flask_key, client_ui)
+            assistant = config['keys']['assistant']
+            app = app_ui(flask_key, client_ui, assistant)
             app.run(debug=True)
             # handler.process_commands()
 
@@ -110,6 +112,7 @@ def driver():
             vector_store_id = config['keys']['vectorStore']
             assistant_id = config['keys']['assistant']
             api_key = config['keys']['openAIKey']
+
 
             # assistant_id = None
             assistant_instructions = """Attempt to fill out the Letter of Intent (LOI) using information from the vector store
@@ -160,7 +163,7 @@ def driver():
             # content = "Fill out the LOI in the associated file using information from the vector store"
             # message.add_content(content, "user")
             # message.add_file_attachment("/home/don/Documents/Wonders/test forms/Kronkosky - LOI.docx")
-            # message.create_message()
+            # message.create_oai_message()
 
             grant_builder.run_assistant()
             output_mgr.close()

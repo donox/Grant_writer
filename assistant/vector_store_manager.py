@@ -1,9 +1,9 @@
 from openai import OpenAI
 
+
 class VectorStoreManager(object):
-    def __init__(self, client, name, vs_id=None, show_json=False):
+    def __init__(self, client, name, vs_id=None):
         self.client = client
-        self.show_json = show_json
         self.vector_store_id = vs_id
         if vs_id:
             self.vector_store = self.client.beta.vector_stores.retrieve(vs_id)

@@ -1,11 +1,11 @@
 from openai import OpenAI
 
 
-class MessageManager(object):
+class Message(object):
     def __init__(self, client, thread):
         self.client = client
-        self.thread = thread
-        self.message = None     # message and message_id and content refer to the user/system query message
+        self.thread = thread    # thread is the thread controller (user level), not oaithread
+        self.oai_message = None
         self.message_id = None
         self.content = None
         self.role = None
@@ -23,18 +23,18 @@ class MessageManager(object):
         self.attachments.append({"file_id": file_object.id,
                                  "tools": [{"type": "file_search"}]})
 
-    def create_message(self):
+    def create_oai_message(self):
         if not self.content or not self.role:
             raise AssertionError("No content or role for message")
         try:
-            self.message = self.client.beta.threads.messages.create(
+            self.oai_message = self.client.beta.threads.messages.create(
                 thread_id=self.thread.id,
                 role=self.role,
                 content=self.content,
                 attachments=self.attachments,
             )
-            self.message_id = self.message.id
-            return self.message
+            self.message_id = self.oai_message.id
+            return self.oai_message
         except Exception as e:
             print(e)
 
@@ -49,7 +49,7 @@ class MessageManager(object):
     def add_response(self, msg):
         self.responses.append(msg)
 
-    def get_message(self):
+    def get_oai_message(self):
         return self.message
 
     def get_responses(self):

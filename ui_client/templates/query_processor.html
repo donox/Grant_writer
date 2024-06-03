@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}Wonders and  Worries{% endblock %}
+
+{% block content %}
+
+<div class="display:none">
+    <div id="threaduser"></div>
+    <div id="threadassistant"></div>
+    <div id="threadname"></div>
+</div>
+
+<div id="thread1" class="container">
+    <form class="edit-form">
+        <textarea name="editor" class="edit-content"></textarea>
+    </form>
+    <button type="button" class="previous">Previous</button>
+    <button type="button" class="next">Next</button>
+    <button type="button" class="query">Run Query</button>
+
+    <div class="query-result"></div>
+</div>
+<script>
+    $(document).ready(function () {
+        // Parse URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const user = urlParams.get('user');
+        const threadName = urlParams.get('name');
+        const assistant = urlParams.get('assistant');
+
+        let load_query_editor = function () {
+            //Handler for thread to load query_processor.html
+            let thrd = '#thread1'
+            $(thrd + ' .edit-form .edit-content').jqte();
+
+
+            function load_thread(url, thread) {
+                $.post(url, function (data) {
+                    $('.message-edit').jqteVal(data.content);
+                });
+            }
+
+            $(thrd + ' .query').click(function () {
+                // Get the current content of the editor
+                let currentContent = $(thrd + ' .edit-content').serialize();
+                // Send the current content to the server and load the returned data
+                $.post('/query/'+threadName, {content: currentContent}, function (data) {
+                    $(thrd + ' .query-result').jqteVal(data.content);
+                });
+            });
+            load_thread('init_thread/'+threadName, threadName);
+        }
+        load_query_editor();
+    });
+</script>
+{% endblock %}

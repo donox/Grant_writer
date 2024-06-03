@@ -1,6 +1,7 @@
 from flask import render_template, request, redirect, url_for, flash, Blueprint, jsonify, current_app
 from urllib.parse import unquote
 
+
 msg = Blueprint("message", __name__)
 
 # In-memory storage for chat messages
@@ -15,11 +16,22 @@ contents = [
 current_index = 0
 
 
+@msg.route('/query_processor')
+def query_processor():
+    return render_template('query_processor.html')
+
+
+@msg.route('/init_thread/<thread>', methods=['POST'])
+def init_thread(thread):
+    foo = 3
+    return jsonify(success=True)
+
+
 @msg.route('/save', methods=['POST'])
 def save():
-    global contents, current_index
-    text_content = request.form['editor']
-    contents[current_index] = text_content
+    # global contents, current_index
+    # text_content = request.form['editor']
+    # contents[current_index] = text_content
     return jsonify(success=True)
 
 
@@ -36,11 +48,12 @@ def previous_content():
     global current_index
     if current_index > 0:
         current_index -= 1
-    return jsonify(content=contents[current_index])
+    res = jsonify(content=contents[current_index])
+    return res
 
 
-@msg.route('/query', methods=['POST'])
-def run_query():
+@msg.route('/query/<thread>', methods=['POST'])
+def run_query(thread):
     ci = current_app.config['CLIENT_INTERFACE']
     if request.method == 'POST':
         msg_text = request.form.get('content')

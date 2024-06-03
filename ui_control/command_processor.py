@@ -3,14 +3,15 @@ from assistant.grant_writer import GrantWriter
 from assistant.file_manager import FileManager
 from assistant.vector_store_manager import VectorStoreManager
 from assistant.io_manager import PrintAndSave
+from assistant.thread_manager import ThreadManager, Thread
+from assistant.message import Message
 
 
 class Commands(object):
-    def __init__(self, command_file_path, config, results_path, show_json=False):
+    def __init__(self, command_file_path, config, results_path):
         self.config = config
         self.command_file_path = command_file_path
         self.results_path = results_path
-        self.show_json = show_json
         self.command_history = []
         self.stop_encountered = False
         self.supported_commands = {'stop': self.cmd_stop,
@@ -22,6 +23,10 @@ class Commands(object):
                                    "get_message_list": self.cmd_get_message_list,
                                    "get_last_results": self.cmd_get_last_results,
                                    "get_text_responses": self.cmd_get_text_responses,
+                                   "cmd_get_thread_list": self.cmd_get_thread_list,
+                                   "cmd_add_new_thread": self.cmd_add_new_thread,
+                                   "cmd_create_run": self.cmd_create_run,
+                                   "cmd_add_message": self.cmd_add_message,
                                    }
         self.grant_builder = None
         self.output_manager = None
@@ -32,6 +37,8 @@ class Commands(object):
         self.vector_store_id = None  # This is assuming there is only one VS in use
         self.assistant_id = None
         self.api_key = None
+        self.thread_path = None
+        self.thread_manager = None
 
     def read_command(self):
         with open(self.command_file_path, 'r') as cmdfile:
@@ -69,15 +76,21 @@ class Commands(object):
         self.vector_store_id = self.config['keys']['vectorStore']
         self.assistant_id = self.config['keys']['assistant']
         self.api_key = self.config['keys']['openAIKey']
-
-        self.grant_builder = GrantWriter(self.api_key, self.output_manager, self.assistant_id, self.vector_store_id,
-                                         show_json=self.show_json)  # FIX SIGNATURE
+        self.thread_path = self.config['paths']['threadList']
+        self.thread_manager = ThreadManager(self.thread_path)
+        self.grant_builder = GrantWriter(self.api_key, self.output_manager, self.thread_manager, self.assistant_id, self.vector_store_id)
+        self.thread_manager.set_grant_builder(self.grant_builder)
         self.client = self.grant_builder.get_client()
 
-        self.vector_store_manager = self.grant_builder.create_vector_store("VS1", vector_store_id=self.vector_store_id,
-                                                                           show_json=self.show_json)
-        self.vector_store_list = self.grant_builder.get_vector_stores()
-        self.vector_store_id = self.vector_store_list[0].get_vector_store_id()  # assume there is a single VS in use.
+
+        # this will look up an existing VS if given an id
+        # TODO: there my be multiple vector stores
+        self.vector_store_manager = self.grant_builder.create_vector_store("VS1",
+                                                                           vector_store_id=self.vector_store_id)
+
+    def cmd_get_user_threads(self, user):
+        result = self.thread_manager.get_threads_for_user(user)
+        return result
 
     def cmd_update_assistant(self, cmd_dict):
         self.grant_builder.update_assistant(**cmd_dict)
@@ -121,3 +134,25 @@ class Commands(object):
         for mgr in msg_mgrs:
             response += mgr.create_response_text() + "\n"
         return response
+
+    def cmd_get_thread_list(self, user):
+        result = self.grant_builder.get_thread_list_user(user)
+        return result
+
+    def cmd_add_new_thread(self, data):
+        result = self.grant_builder.add_new_thread( data)
+        return result
+
+    def cmd_create_run(self, user, name, assistant_id):           # IS THIS RIGHT, Who knows about the 'set thread'?
+        result = self.grant_builder.create_run(user, name, assistant_id)
+        return result
+
+    def cmd_add_message(self, cmd):
+        # cmd = {"command": "add_message", "content": message, "role": "user", "thread_name": thread_name,
+        # "assistant": assistant}
+        thread = self.thread_manager.get_known_thread_entry_from_name(cmd["thread_name"])
+        if not thread:
+            return False            # return a message or something???
+        message = Message(self.client, thread)
+        message.add_content(cmd['content'], cmd['role'])
+        return message

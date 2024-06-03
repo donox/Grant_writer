@@ -3,28 +3,28 @@
 {% block title %}Wonders and  Worries{% endblock %}
 
 {% block content %}
-<!--  Message list with edit/delete capability --no used
-<ul class="list-group">
-    {% for message in messages %}
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-            {{ message.text }}
-            <span>
-                <a class="btn btn-sm btn-primary" href="{{ url_for('start.edit_message', message_id=message.id) }}">Edit</a>
-                <a class="btn btn-sm btn-danger" href="{{ url_for('start.delete_message', message_id=message.id) }}">Delete</a>
-            </span>
-        </li>
-    {% endfor %}
-</ul>
--->
-<div class="container">
-    <form id="editor-form">
-        <textarea name="editor" class="message-edit"></textarea>
-            </form>
-        <button type="button" id="previous">Previous</button>
-        <button type="button" id="next">Next</button>
-        <button type="button" id="query">Run Query</button>
-        <input type="checkbox" id="save-checkbox"> Save content before navigating
 
-    <div id="query-result"></div>
+<div id="threadContainer" class="container">
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Purpose</th>
+        </tr>
+        </thead>
+        <tbody id="threads"></tbody>
+    </table>
+</div>
+
+
+<div id="popupOverlay"></div>
+
+<div id="popupForm">
+    <label for="nameInput">Name:</label>
+    <input type="text" id="nameInput"><br><br>
+    <label for="purposeInput">Purpose:</label>
+    <input type="text" id="purposeInput"><br><br>
+    <button id="submitBtn">Submit</button>
+    <button id="closeBtn">Close</button>
 </div>
 {% endblock %}

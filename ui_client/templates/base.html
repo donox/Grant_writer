@@ -27,11 +27,11 @@
 <!-- Flashed messages -->
 <div class="container mt-2">
     {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert alert-{{ category }}">{{ message }}</div>
-            {% endfor %}
-        {% endif %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }}">{{ message }}</div>
+    {% endfor %}
+    {% endif %}
     {% endwith %}
 </div>
 <div> {% block content %}{% endblock %}</div>
@@ -39,83 +39,127 @@
 
 
 <script src="{{ url_for('static', filename='js/jstree.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/wonders.js') }}"></script>
+<style src="{{ url_for('static', filename='style.css') }}"></style>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-te/1.4.0/jquery-te.min.js"></script>
 <script>
-    $(document).ready(function () {
-        // Make an AJAX request to the Flask route
-        $.ajax({
-            url: '/get_tree_data',
-            type: 'GET',
-            dataType: 'json',
-            success: function (data) {
-                // console.log('Received data from server:', data);
-                // $('.message-edit').jqte();
-                // Create the jstree
-                $('#jstree').jstree({
-                    'core': {
-                        'data': data
-                    },
-                    'plugins': ['types'] // Enable types plugin
-                })
-                // .on('loaded.jstree', function () {
-                //     console.log('jstree loaded');
-                // })
-                // .on('open_node.jstree', function (e, data) {
-                //     console.log('Node opened:', data.node.text);
-                // })
-                // .on('close_node.jstree', function (e, data) {
-                //     console.log('Node closed:', data.node.text);
-                // });
-            },
-            error: function (xhr, status, error) {
-                console.error('Error:', error);
-            }
-        });
-
-        $('#jstree').on("changed.jstree", function (e, data) {
-            console.log(data.selected);
-        });
-
-        // Set the initial content for messages
-        var initialContent = "{{ content|safe }}";
-        $('.message-edit').jqte();
-        $('.message-edit').jqteVal(initialContent);
-
-        function loadContent(url) {
-            if ($('#save-checkbox').is(':checked')) {
-                $.post('/save', $('#editor-form').serialize(), function () {
-                    $.post(url, function (data) {
-                        console.log(data);
-                        $('.message-edit').jqteVal(data.content);
-                    });
-                });
-            } else {
-                $.post(url, function (data) {
-                    $('.message-edit').jqteVal(data.content);
-                });
-            }
-        }
-
-        $('#next').click(function () {
-            loadContent('/next');
-        });
-
-        $('#previous').click(function () {
-            loadContent('/previous');
-        });
-        $('#query').click(function () {
-            // Get the current content of the editor
-            var currentContent = $('#editor-form').serialize();
-
-            // Send the current content to the server and load the returned data
-            $.post('/query', {content: currentContent}, function (data) {
-                let formattedText = data.content.replace(/\n/g, "<br>")
-                $('#query-result').html(formattedText);
-            });
-        });
-    });
+    // $(document).ready(function () {
+    //     // // Make an AJAX request to the Flask route to fill data tree
+    //     // $.ajax({
+    //     //     url: '/get_tree_data',
+    //     //     type: 'GET',
+    //     //     dataType: 'json',
+    //     //     success: function (data) {
+    //     //         // console.log('Received data from server:', data);
+    //     //         // $('.message-edit').jqte();
+    //     //         // Create the jstree
+    //     //         $('#jstree').jstree({
+    //     //             'core': {
+    //     //                 'data': data
+    //     //             },
+    //     //             'plugins': ['types'] // Enable types plugin
+    //     //         })
+    //     //         // .on('loaded.jstree', function () {
+    //     //         //     console.log('jstree loaded');
+    //     //         // })
+    //     //         // .on('open_node.jstree', function (e, data) {
+    //     //         //     console.log('Node opened:', data.node.text);
+    //     //         // })
+    //     //         // .on('close_node.jstree', function (e, data) {
+    //     //         //     console.log('Node closed:', data.node.text);
+    //     //         // });
+    //     //     },
+    //     //     error: function (xhr, status, error) {
+    //     //         console.error('Error:', error);
+    //     //     }
+    //     // });
+    //     //
+    //     // $('#jstree').on("changed.jstree", function (e, data) {
+    //     //     console.log(data.selected);
+    //     // });
+    //
+    //     // // Set the initial content for messages       REMOVE THIS
+    //     // let initialContent = "{{ content|safe }}";
+    //     // $('.message-edit').jqte();
+    //     // $('.message-edit').jqteVal(initialContent);
+    //     //
+    //     // function loadContent(url) {
+    //     //     $.post(url, function (data) {
+    //     //         $('.message-edit').jqteVal(data.content);
+    //     //     });
+    //     // }
+    //     //
+    //     // $('#next').click(function () {
+    //     //     loadContent('/next');
+    //     // });
+    //     //
+    //     // $('#previous').click(function () {
+    //     //     loadContent('/previous');
+    //     // });
+    //
+    //     // Load the query editors page
+    //
+    //     let get_list_of_threads = function () {
+    //         let user = 'don';
+    //         $.ajax({
+    //             url: '/get-thread-list/' + user,
+    //             type: 'GET',
+    //             dataType: 'json',
+    //             success: function (data) {
+    //                 // Find the table body
+    //                 let tbodyObj = $('#threads');
+    //
+    //                 // Clear existing rows (if any)
+    //                 tbodyObj.empty();
+    //
+    //                 // Loop through the data and append rows
+    //                 data.forEach(function (thread) {
+    //                     let row = $('<tr></tr>');
+    //                     let nameCell = $('<td></td>').text(thread.name).addClass('clickable');
+    //                     nameCell.on('click', function () {
+    //                         // You can perform other actions here
+    //                         let prohibitedNames = ['NEW CONVERSATION', 'main'];
+    //                         if (thread.name.trim() == 'NEW CONVERSATION') {
+    //                             openPopup(prohibitedNames, function(result){
+    //                                 alert("ADD THREAD " + result.name);
+    //                                  addThread(result, user);
+    //                             })
+    //                         } else {
+    //                             alert("USE THREAD" + thread.name);
+    //                             createRun(thread.name, user);
+    //                         }
+    //                     });
+    //                     let purposeCell = $('<td></td>').text(thread.purpose);
+    //                     row.append(nameCell, purposeCell);
+    //                     tbodyObj.append(row);
+    //                 });
+    //                 $('#threads').append(tbodyObj.outerHTML)
+    //
+    //             },
+    //             error: function (xhr, status, error) {
+    //                 console.error("Error fetching thread list:", error);
+    //             }
+    //         });
+    //     }
+    //     get_list_of_threads();
+    //     let addThread = function (jsonData) {
+    //         $.ajax({
+    //             url: '/add-new-thread/' + user,
+    //             type: 'POST',
+    //             dataType: 'json',
+    //             data: jsonData,
+    //             success: function (data) {
+    //                 alert('Thread Added' + data)
+    //                 get_list_of_threads()
+    //             },
+    //             error: function (xhr, status, error) {
+    //                 console.error("Error adding thread:", error);
+    //             },
+    //         });
+    //     }
+    // });
 </script>
 </body>
 </html>
