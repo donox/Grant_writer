@@ -23,8 +23,10 @@ def query_processor():
 
 @msg.route('/init_thread/<thread>', methods=['POST'])
 def init_thread(thread):
+    ci = current_app.config['CLIENT_INTERFACE']
+    message_list = ci.cmd_get_thread_messages(thread)
     foo = 3
-    return jsonify(success=True)
+    return jsonify(content=message_list, success=True)
 
 
 @msg.route('/save', methods=['POST'])
@@ -52,18 +54,21 @@ def previous_content():
     return res
 
 
-@msg.route('/query/<thread>', methods=['POST'])
-def run_query(thread):
+@msg.route('/query', methods=['POST'])
+def run_query():
     ci = current_app.config['CLIENT_INTERFACE']
     if request.method == 'POST':
         msg_text = request.form.get('content')
+        user = request.form.get('user')
+        thread_name = request.form.get('threadName')
+        assistant_id = request.form.get('assistant')
         if 'urlencoded' in request.content_type:
             msg_text = unquote(msg_text)
         else:
             print(f"/query content has content type: {request.content_type}")  # Probably will need json at a min
         # flash('Message updated successfully!', 'success')
-        ci.cmd_add_user_message(msg_text)
-        ci.cmd_process_query()
+        ci.cmd_add_user_message(msg_text, thread_name, assistant_id)
+        ci.cmd_process_query(user, thread_name, assistant_id)      # user, name, assistant_id
         result = ci.cmd_get_result_as_text()
         return jsonify({'content': result})
     else:

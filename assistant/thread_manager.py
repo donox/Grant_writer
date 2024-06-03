@@ -1,13 +1,14 @@
 import json
 import csv
+from assistant.message_manager import Message
 
 
 class ThreadManager(object):
     def __init__(self, file_path):
         self.grant_builder = None
         self.file = file_path
-        self.known_threads = []     # These are the threads as recorded in the 'database' (survives over runs)
-        self.in_use_threads = []    # These are Thread objects created since application startup
+        self.known_threads = []  # These are the threads as recorded in the 'database' (survives over runs)
+        self.in_use_threads = []  # These are Thread objects created since application startup
         with open(self.file, 'r') as thread_data:
             rdr = csv.reader(thread_data)
             for usr, thread_name, thread_id, purpose in rdr:
@@ -18,9 +19,12 @@ class ThreadManager(object):
                 self.known_threads.append(tmp)
                 thread_object = Thread(tmp, self)
                 self.in_use_threads.append(thread_object)
+        self.message_list = []
 
-    def set_grant_builder(self, grant_builder):         # Needed to avoid circular call with ThreadManager
+    def set_grant_builder(self, grant_builder):  # Needed to avoid circular call with ThreadManager
         self.grant_builder = grant_builder
+        for thread in self.in_use_threads:       # We've created at least one thread before grant_builder defined
+            thread.set_grant_builder(self.grant_builder)
 
     def get_thread_list_user(self, user):
         user_threads = []
@@ -64,6 +68,9 @@ class ThreadManager(object):
         thread = self.grant_builder.get_oai_thread(thread_id)
         return thread
 
+    def get_grant_builder(self):
+        return self.grant_builder
+
 
 class Thread(object):
     def __init__(self, data, thread_manager):
@@ -74,7 +81,11 @@ class Thread(object):
         self.user = data['user']
         self.purpose = data['purpose']
         self.thread_instantiated = False
-        self.messages_instantiated = False
+        self.message_list = []
+        self.grant_builder = self.thread_manager.get_grant_builder()
+
+    def set_grant_builder(self, gb):            # Defending against Threads created before manager knows builder
+        self.grant_builder = gb
 
     def get_oai_thread(self):
         if not self.thread_instantiated:
@@ -84,3 +95,31 @@ class Thread(object):
 
     def get_thread_name(self):
         return self.thread_name
+
+    def get_id(self):
+        return self.thread_id
+
+    def update_messages(self):
+        self.oai_thread = self.get_oai_thread()
+        if self.message_list:
+            most_recent_message = self.message_list[0]  # messages in reverse chrono order
+            message_id = most_recent_message.get_message_id()
+        else:
+            message_id = None
+        raw_messages = self.grant_builder.get_raw_messages(self.oai_thread, after=message_id)
+        if raw_messages['data']:
+            processed_messages = []
+            for msg in raw_messages:
+                new_message = Message(self.grant_builder, self.thread_id)
+                processed_messages.append(new_message)
+            self.message_list = processed_messages + self.message_list
+
+    def get_most_recent_responses(self):
+        """Return list of messages from beginning of message list through first one with role 'user'."""
+        result = []
+        for message in self.message_list:
+            result.append(message)
+            if message.get_role() == 'user':
+                break
+        return result
+

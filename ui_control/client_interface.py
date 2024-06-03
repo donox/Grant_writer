@@ -15,8 +15,8 @@ class ClientInterface(object):
         added_message = self.command_processor.cmd_add_message(cmd)
         return "foo"
 
-    def cmd_process_query(self):
-        self.command_processor.cmd_run_query(None)
+    def cmd_process_query(self, user, thread, assistant_id):
+        self.command_processor.cmd_run_query(user, thread, assistant_id)
 
     def cmd_get_last_results(self):
         """Get MessageManager for last query."""
@@ -44,4 +44,8 @@ class ClientInterface(object):
 
     def cmd_create_run(self, user,  name, assistant_id):
         result = self.command_processor.cmd_create_run(user, name, assistant_id)
+        return result
+
+    def cmd_get_thread_messages(self, thread):
+        result = self.command_processor.cmd_get_thread_messages(thread)
         return result

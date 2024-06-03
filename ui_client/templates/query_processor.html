@@ -4,11 +4,6 @@
 
 {% block content %}
 
-<div class="display:none">
-    <div id="threaduser"></div>
-    <div id="threadassistant"></div>
-    <div id="threadname"></div>
-</div>
 
 <div id="thread1" class="container">
     <form class="edit-form">
@@ -32,19 +27,18 @@
             //Handler for thread to load query_processor.html
             let thrd = '#thread1'
             $(thrd + ' .edit-form .edit-content').jqte();
-
-
             function load_thread(url, thread) {
                 $.post(url, function (data) {
                     $('.message-edit').jqteVal(data.content);
                 });
             }
-
+            // On click, the current query is run with the result added to the editor.
             $(thrd + ' .query').click(function () {
                 // Get the current content of the editor
                 let currentContent = $(thrd + ' .edit-content').serialize();
                 // Send the current content to the server and load the returned data
-                $.post('/query/'+threadName, {content: currentContent}, function (data) {
+                $.post('/query', {content: currentContent,
+                user: user, threadName: threadName, assistant:assistant}, function (data) {
                     $(thrd + ' .query-result').jqteVal(data.content);
                 });
             });

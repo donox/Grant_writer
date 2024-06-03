@@ -1,7 +1,9 @@
+import json
+import time
 from typing import List, Any
 from openai import OpenAI
 from assistant.vector_store_manager import VectorStoreManager, get_known_vector_stores
-from assistant.message import Message
+from assistant.message_manager import Message
 from assistant.thread_manager import Thread
 from assistant.assistant_manager import Assistant
 
@@ -11,6 +13,9 @@ from assistant.assistant_manager import Assistant
 #  https://platform.openai.com/assistants
 
 
+
+
+
 class GrantWriter(object):
     def __init__(self, api_key, output_mgr, thread_manager, assistant_id=None, instructions=None, vector_store_id=None):
         self.client = OpenAI(api_key=api_key)
@@ -18,10 +23,6 @@ class GrantWriter(object):
         self.output_mgr = output_mgr
         self.thread_manager = thread_manager
         self.vector_store_list = []  # list of vector_store_manager objects that have been instantiated
-        # a run is a named pairing of an assistant and a thread.
-        #     e.g., {"name": "foo", "assistant": "azkedadcm", "thread": "aaicdidient"}
-        self.runs = []
-
         self.get_existing_assistants()
         self.get_existing_vector_stores()
         # OpenAI.beta.threads.runs.list()
@@ -64,6 +65,10 @@ class GrantWriter(object):
         result = self.thread_manager.get_thread_list_user(user)
         return result
 
+    def get_thread_by_name(self, thread_name):
+        thread = self.thread_manager.get_known_thread_entry_from_name(thread_name)
+        return thread
+
     def add_new_thread(self, data):
         thread = self.client.beta.threads.create()
         result = self.thread_manager.add_new_thread(thread, data)
@@ -74,17 +79,53 @@ class GrantWriter(object):
         thread_id = thread.thread_id
         oai_thread = self.get_oai_thread(thread_id)
         assistant = [x for x in self.assistant_list if x.get_id() == assistant_id]
-        if assistant:
-            result = self.run_manager.create_run(assistant, thread, user)        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            return result
+        if assistant and len(assistant) == 1:
+            run = self.client.beta.threads.runs.create(thread_id=thread_id, assistant_id=assistant[0].get_id())
+            run = self.wait_on_run(run, oai_thread)
+            return run
         else:
             print(f"Assistant: {assistant_id} not in existing assistants.")
             return False
+
+    def wait_on_run(self, run, thread):
+        while run.status == "queued" or run.status == "in_progress":
+            run = self.client.beta.threads.runs.retrieve(
+                thread_id=thread.id,
+                run_id=run.id,
+            )
+            time.sleep(0.5)
+        return run
 
     def get_oai_thread(self, thread_id):
         thread = self.client.beta.threads.retrieve(thread_id)
         return thread
 
+    def get_raw_messages(self, oai_thread, after=None):
+        message_id = after
+        if message_id:
+            result_str = self.client.beta.threads.messages.list(thread_id=oai_thread.id, order="asc", after=message_id)
+        else:
+            result_str = self.client.beta.threads.messages.list(thread_id=oai_thread.id, order="asc")
+        result = json.loads(result_str.to_json())
+        return result
+
+    def create_oai_message(self, role, content, thread, attachments):
+        if not content or not role:
+            raise AssertionError("No content or role for message")
+        try:
+            oai_message = self.client.beta.threads.messages.create(
+                thread_id=thread.id,
+                role=role,
+                content=content,
+                attachments=attachments,
+            )
+            return oai_message
+        except Exception as e:
+            print(e)
+
+    def get_file_object(self, path):
+        file_object = self.client.files.create(file=open(path, "rb"), purpose="assistants")   # Purpose right????
+        return file_object
 
 # class XGrantWriter(object):
 #     def __init__(self, api_key, output_mgr, assistant_id=None, instructions=None, vector_store_id=None,

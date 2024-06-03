@@ -4,7 +4,7 @@ from assistant.file_manager import FileManager
 from assistant.vector_store_manager import VectorStoreManager
 from assistant.io_manager import PrintAndSave
 from assistant.thread_manager import ThreadManager, Thread
-from assistant.message import Message
+from assistant.message_manager import Message
 
 
 class Commands(object):
@@ -111,16 +111,16 @@ class Commands(object):
         msg = self.grant_builder.add_message(cmd_dict['role'], cmd_dict['content'])
         return msg
 
-    def cmd_run_query(self, cmd_dict):
-        self.grant_builder.run_assistant()
-        thread = self.grant_builder.get_thread()
-        self.grant_builder.update_message_lists(thread.id)          #  MULTIPLE THREADS
+    def cmd_run_query(self, user, thread_name, assistant):
+        self.grant_builder.create_run( user, thread_name, assistant)
+        thread = self.thread_manager.get_known_thread_entry_from_name(thread_name)
+        thread.update_messages()
 
     def cmd_get_message_list(self, thread_id):
         result = self.grant_builder.get_messages(thread_id)
         return result
 
-    def cmd_get_last_results(self):
+    def cmd_get_last_results(self):    # THIS IS BROKEN  Get via thread manager
         result = self.cmd_get_message_list(self.grant_builder.get_thread().id)
         if result is None or result is []:
             return "There were no results to return"
@@ -153,6 +153,14 @@ class Commands(object):
         thread = self.thread_manager.get_known_thread_entry_from_name(cmd["thread_name"])
         if not thread:
             return False            # return a message or something???
-        message = Message(self.client, thread)
+        message = Message(self.grant_builder, thread)
         message.add_content(cmd['content'], cmd['role'])
         return message
+
+    def cmd_get_thread_messages(self, thread_name):
+        """Retrieve list of dictionaries representing messages from the last query run."""
+        thread = self.grant_builder.get_thread_by_name(thread_name)
+        thread.update_messages()
+        result = thread.get_most_recent_responses()
+        return result
+
