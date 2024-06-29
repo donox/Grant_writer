@@ -4,16 +4,32 @@
 
 {% block content %}
 
-
+<div class="row">
+    <button type="button" class="query btn btn-primary">Run Query</button>
+</div>
 <div id="thread1" class="container">
-    <form class="edit-form">
-        <textarea name="editor" class="edit-content"></textarea>
-    </form>
-    <button type="button" class="previous">Previous</button>
-    <button type="button" class="next">Next</button>
-    <button type="button" class="query">Run Query</button>
-
-    <div class="query-result"></div>
+    <div class="row result">
+        <div class="col-9">
+            <div>Role: <span class="messageRole"></span> &nbsp;&nbsp;Conversation: <span class="messageThread"></span>
+            </div>
+            <div>ID: <span class="messageId"></span></div>
+            <form class="edit-form">
+                <textarea id="BaseQuery" name="editor" class="edit-content expandingTextarea bg-primary-subtle">
+                </textarea>
+            </form>
+        </div>
+        <div class="col">
+            <div class="row" hidden="True" >
+                <button type="button" class="msg_update">Update</button>
+            </div>
+            <div class="row">
+                <button type="button" class="msg_copy">Copy</button>
+            </div>
+            <div class="row">
+                <button type="button" class="msg_delete">Delete</button>
+            </div>
+        </div>
+    </div>
 </div>
 <script>
     $(document).ready(function () {
@@ -23,28 +39,94 @@
         const threadName = urlParams.get('name');
         const assistant = urlParams.get('assistant');
 
+        // Adjust height on input event for each textarea
+        $('.expandingTextarea').each(function () {
+            adjustHeight(this); // Initial adjustment on page load
+
+            $(this).on('input', function () {
+                adjustHeight(this);
+            });
+        });
+
         let load_query_editor = function () {
-            //Handler for thread to load query_processor.html
-            let thrd = '#thread1'
-            $(thrd + ' .edit-form .edit-content').jqte();
-            function load_thread(url, thread) {
-                $.post(url, function (data) {
-                    $('.message-edit').jqteVal(data.content);
-                });
-            }
-            // On click, the current query is run with the result added to the editor.
-            $(thrd + ' .query').click(function () {
-                // Get the current content of the editor
-                let currentContent = $(thrd + ' .edit-content').serialize();
-                // Send the current content to the server and load the returned data
-                $.post('/query', {content: currentContent,
-                user: user, threadName: threadName, assistant:assistant}, function (data) {
-                    $(thrd + ' .query-result').jqteVal(data.content);
+            // Initialize TinyMCE on the initial textarea
+            let base = $('.result')
+            let text_area = base.find('.edit-content')
+
+            // Click handler for the query button
+            $('.query').on('click', function () {
+                // Get the content from TinyMCE
+                let content = encodeURIComponent(text_area.val());
+                // console.log(content)
+
+                // Make an AJAX call to the server
+                $.ajax({
+                    url: '/query',
+                    method: 'POST',
+                    data: {
+                        content: content,
+                        thread: threadName,
+                        user: user,
+                        assistant: assistant,
+                    },
+                    success: function (response) {
+                        // Assuming response is an array of items
+                        response.forEach(function (item, index) {
+                            // Clone the result row
+                            let newRow = base.clone(true);
+
+                            // Update the textarea ID
+                            let newTextareaId = 'BaseQuery' + (index + 1);
+                            newRow.find('edit-content').attr('id', newTextareaId);
+                            base.after(newRow);
+                            newRow.find('.messageId').text(item.message_id);
+                            newRow.find('.messageRole').text(item.role);
+                            newRow.find('.messageThread').text(item.thread);
+                            newRow.find('.edit-content').val(item.content);
+                            newRow.find('.msg_update').on('click', function () {
+                                alert('Pushed update');
+                                updateMessage(item.message_id, item.role, threadName, item.content);
+                            });
+                            adjustHeight(newRow.find('.edit-content')[0]);
+                            let colorClass = 'bg-success';
+                            if (item.role == 'user'){
+                                colorClass = 'userRoleCSS';
+                            }
+                            if (item.role == 'assistant'){
+                                colorClass = 'assistantRoleCSS';
+                            }
+                            newRow.contents().find('textarea').removeClass('bg-primary-subtle').addClass(colorClass);
+                            newRow.contents().find('textarea').removeClass('bg-primary-subtle').addClass(colorClass);
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('AJAX Error: ' + status + error);
+                    }
                 });
             });
-            load_thread('init_thread/'+threadName, threadName);
-        }
+        };
         load_query_editor();
+
+        let updateMessage = function (message_id, role, threadName, content) {
+            // This is not used?  Can't update messages after creation.
+            $.ajax({
+                url: '/update-message',
+                method: 'POST',
+                data: {
+                    content: content,
+                    thread: threadName,
+                    role: role,
+                    message_id: message_id,
+                },
+                success: function (response) {
+                    console.log('SUCCESS: ' + response)
+                },
+                error: function (error) {
+                    console.log('SUCCESS: ' + error)
+                },
+            })
+        };
+
     });
 </script>
 {% endblock %}

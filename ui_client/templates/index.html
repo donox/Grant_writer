@@ -16,15 +16,38 @@
     </table>
 </div>
 
-
-<div id="popupOverlay"></div>
-
-<div id="popupForm">
-    <label for="nameInput">Name:</label>
-    <input type="text" id="nameInput"><br><br>
-    <label for="purposeInput">Purpose:</label>
-    <input type="text" id="purposeInput"><br><br>
-    <button id="submitBtn">Submit</button>
-    <button id="closeBtn">Close</button>
+<div id="assistantContainer" class="container">
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Id</th>
+        </tr>
+        </thead>
+        <tbody id="assistants"></tbody>
+    </table>
 </div>
+
+
+<div id="popupThreadOverlay"></div>
+
+<div id="popupAssistantOverlay"></div>
+
+<div id="popupThreadForm">
+    <label for="threadNameInput">Name:</label>
+    <input type="text" id="threadNameInput"><br><br>
+    <label for="threadPurposeInput">Purpose:</label>
+    <input type="text" id="threadPurposeInput"><br><br>
+    <button id="threadSubmitBtn">Submit</button>
+    <button id="threadCloseBtn">Close</button>
+</div>
+
+<div id="popupAssistantForm">
+    <label for="assistantNameInput">Name:</label>
+    <input type="text" id="assistantNameInput"><br><br>
+    <button id="assistantSubmitBtn">Submit</button>
+    <button id="assistantCloseBtn">Close</button>
+</div>
+
+
 {% endblock %}

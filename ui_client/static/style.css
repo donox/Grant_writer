@@ -8,7 +8,7 @@
     color: darkblue;
 }
 /* Basic styling for new thread popup */
-#popupForm {
+#popupThreadForm, #popupAssistantForm {
     display: none;
     position: fixed;
     left: 50%;
@@ -20,7 +20,7 @@
     z-index: 1000;
 }
 
-#popupOverlay {
+#popupAssistantOverlay, #popupThreadOverlay {
     display: none;
     position: fixed;
     left: 0;
@@ -30,3 +30,24 @@
     background-color: rgba(0, 0, 0, 0.5);
     z-index: 999;
 }
+
+.expandingTextarea {
+    width: 500px; /* Fixed width */
+    max-height: 500px; /* Max height before scrolling */
+    overflow-y: auto; /* Enable vertical scrolling if needed */
+    resize: none; /* Disable manual resizing */
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+.messageId, .messageRole, .messageThread {
+    font-size: small;
+    font-weight: bolder;
+}
+
+.userRoleCSS {
+    background-color: #c6d4c0 ;
+}
+.assistantRoleCSS{
+     background-color: #e8d6bf ;
+}
+
+

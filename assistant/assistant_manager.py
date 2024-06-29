@@ -38,6 +38,9 @@ class Assistant(object):
     def get_name(self):
         return self.name
 
+    def get_oai_assistant(self):
+        return self.assistant
+
     def update_assistant(self, description=None, instructions=None, metadata=None, name=None,
                          response_format=None, temperature=None, tool_resources=None, tools=None, top_p=None, **kwargs):
         params = {"assistant_id": self.assistant.id}

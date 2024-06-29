@@ -13,9 +13,6 @@ from assistant.assistant_manager import Assistant
 #  https://platform.openai.com/assistants
 
 
-
-
-
 class GrantWriter(object):
     def __init__(self, api_key, output_mgr, thread_manager, assistant_id=None, instructions=None, vector_store_id=None):
         self.client = OpenAI(api_key=api_key)
@@ -27,16 +24,23 @@ class GrantWriter(object):
         self.get_existing_vector_stores()
         # OpenAI.beta.threads.runs.list()
 
-    def add_message(self, role, content, add_file_path=None):
-        msg = Message(self.client, self.thread)
-        msg.add_content(content, role)
-        if add_file_path:
-            msg.add_file_attachment(add_file_path)
-        msg_obj = msg.create_oai_message()
-        self.message_list.append(msg)  # add MessageManager object
-        if self.show_json:
-            self.output_mgr.output_json(msg_obj.model_dump_json(), header="Message: 1")  # HEader???
-        return msg
+    def add_message_to_thread(self, thread, content, role):
+        """add new message to existing thread, returning OIA message."""
+        thread_id = thread.get_id()
+        message = self.client.beta.threads.messages.create(
+            thread_id=thread_id,
+            role=role,
+            content=content)
+        return message
+
+    def update_message(self, message_id, role, thread_name, content):
+        foo = 3
+        thread = self.thread_manager.get_known_thread_entry_from_name(thread_name)
+        msg = thread.get_message_from_id(message_id)
+        if msg:
+            msg.update_message(message_id, role, thread.get_id(), content)
+            return True
+        return False
 
     def create_vector_store(self, name, vector_store_id=None):
         vs = VectorStoreManager(self.client, name, vs_id=vector_store_id)
@@ -71,8 +75,48 @@ class GrantWriter(object):
 
     def add_new_thread(self, data):
         thread = self.client.beta.threads.create()
-        result = self.thread_manager.add_new_thread(thread, data)
+        result = self.thread_manager.add_new_thread(thread, data['user'], data['name'], data['purpose'])
         return result
+
+    def add_new_assistant(self, data):
+        result = Assistant(self.client, data['name'])
+        return result
+
+    def delete_thread(self, thread_name):
+        thread_id = self.thread_manager.get_known_thread_entry_from_name(thread_name).get_id()
+        try:
+            result = self.client.beta.threads.delete(thread_id)
+        except Exception as e:     # openAI - NotFoundError
+            print(f"Thread {thread_name} was not found getting error {e.args}")
+            return False
+        if result.deleted:
+            self.thread_manager.delete_thread(thread_name)
+        return result.deleted               # True/False
+
+    def get_assistant_list(self):
+        result = []
+        for assistant in self.assistant_list:
+            result.append({'name': assistant.get_name(),
+                           'id': assistant.get_id()})
+        return result
+
+    def delete_assistant(self, assistant_id):
+        this_assistant = None
+        for x in self.assistant_list:
+            if x.get_id() == assistant_id:
+                this_assistant = x
+        if not this_assistant:
+            print(f"Assistant {assistant_id} was not found getting error {e.args}")
+            return False
+        try:
+            result = self.client.beta.assistants.delete(this_assistant.get_id())
+        except Exception as e:     # openAI - NotFoundError
+            print(f"Assistant {assistant_id} was not found getting error {e.args}")
+            return False
+        if result.deleted:
+            self.assistant_list.remove(this_assistant)
+            this_assistant = None
+        return result.deleted               # True/False
 
     def create_run(self, user, name, assistant_id):
         thread = self.thread_manager.get_known_thread_entry_from_name(name)
@@ -101,12 +145,19 @@ class GrantWriter(object):
         return thread
 
     def get_raw_messages(self, oai_thread, after=None):
+        foo = 3
         message_id = after
         if message_id:
             result_str = self.client.beta.threads.messages.list(thread_id=oai_thread.id, order="asc", after=message_id)
         else:
             result_str = self.client.beta.threads.messages.list(thread_id=oai_thread.id, order="asc")
-        result = json.loads(result_str.to_json())
+        raw_result = json.loads(result_str.to_json())
+        result = []
+        for msg in raw_result['data']:
+            if msg['role'] and msg['content']:
+                result.append(msg)
+            else:
+                self.client.beta.threads.messages.delete(msg.id, oai_thread.id)
         return result
 
     def create_oai_message(self, role, content, thread, attachments):
@@ -179,7 +230,7 @@ class GrantWriter(object):
 #
 #     def add_message(self, role, content, add_file_path=None):
 #         msg = Message(self.client, self.thread)
-#         msg.add_content(content, role)
+#         msg.add_content_and_create_message_in_thread(content, role)
 #         if add_file_path:
 #             msg.add_file_attachment(add_file_path)
 #         msg_obj = msg.create_oai_message()

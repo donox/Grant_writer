@@ -18,15 +18,19 @@ class Commands(object):
                                    'setup': self.cmd_setup,
                                    'update_assistant': self.cmd_update_assistant,
                                    "attach_file_to_assistant": self.cmd_attach_file_to_assistant,
-                                   "add_message": self.cmd_add_message,
+                                   # "add_message": self.cmd_add_message,    # USE cmd_add_message below???
                                    "run_query": self.cmd_run_query,
-                                   "get_message_list": self.cmd_get_message_list,
+                                   # "get_message_list": self.cmd_get_message_list,
                                    "get_last_results": self.cmd_get_last_results,
                                    "get_text_responses": self.cmd_get_text_responses,
                                    "cmd_get_thread_list": self.cmd_get_thread_list,
                                    "cmd_add_new_thread": self.cmd_add_new_thread,
                                    "cmd_create_run": self.cmd_create_run,
                                    "cmd_add_message": self.cmd_add_message,
+                                   "cmd_delete_thread": self.cmd_delete_thread,
+                                   'cmd_update_message': self.cmd_update_message,
+                                   'cmd_get_assistant_list': self.cmd_get_assistant_list,
+                                   'cmd_add_new_assistant': self.cmd_add_new_assistant,
                                    }
         self.grant_builder = None
         self.output_manager = None
@@ -76,7 +80,7 @@ class Commands(object):
         self.vector_store_id = self.config['keys']['vectorStore']
         self.assistant_id = self.config['keys']['assistant']
         self.api_key = self.config['keys']['openAIKey']
-        self.thread_path = self.config['paths']['threadList']
+        self.thread_path = self.config['paths']['threadList']     # We have to keep a list of known threads ourselves
         self.thread_manager = ThreadManager(self.thread_path)
         self.grant_builder = GrantWriter(self.api_key, self.output_manager, self.thread_manager, self.assistant_id, self.vector_store_id)
         self.thread_manager.set_grant_builder(self.grant_builder)
@@ -107,29 +111,17 @@ class Commands(object):
         except Exception as e:
             print(f"error in file attachment: {e.args}")
 
-    def cmd_add_message(self, cmd_dict):
-        msg = self.grant_builder.add_message(cmd_dict['role'], cmd_dict['content'])
-        return msg
-
     def cmd_run_query(self, user, thread_name, assistant):
-        self.grant_builder.create_run( user, thread_name, assistant)
-        thread = self.thread_manager.get_known_thread_entry_from_name(thread_name)
-        thread.update_messages()
+        if self.grant_builder.create_run(user, thread_name, assistant):   # not False if run completed
+            thread = self.thread_manager.get_known_thread_entry_from_name(thread_name)
+            thread.update_messages()
 
-    def cmd_get_message_list(self, thread_id):
-        result = self.grant_builder.get_messages(thread_id)
-        return result
+    # def cmd_get_message_list(self, thread_id):              # DEAD
+    #     result = self.grant_builder.get_messages(thread_id)
+    #     return result
 
-    def cmd_get_last_results(self):    # THIS IS BROKEN  Get via thread manager
-        result = self.cmd_get_message_list(self.grant_builder.get_thread().id)
-        if result is None or result is []:
-            return "There were no results to return"
-        if isinstance(result, list) and len(result) > 1:
-            result = [result[-1]]
-        return result
-
-    def cmd_get_text_responses(self):
-        msg_mgrs = self.cmd_get_last_results()
+    def cmd_get_text_responses(self, user, thread_name, assistant_id):
+        msg_mgrs = self.cmd_get_last_results(user, thread_name, assistant_id)
         response = ""
         for mgr in msg_mgrs:
             response += mgr.create_response_text() + "\n"
@@ -140,10 +132,18 @@ class Commands(object):
         return result
 
     def cmd_add_new_thread(self, data):
-        result = self.grant_builder.add_new_thread( data)
+        result = self.grant_builder.add_new_thread(data)
         return result
 
-    def cmd_create_run(self, user, name, assistant_id):           # IS THIS RIGHT, Who knows about the 'set thread'?
+    def cmd_get_assistant_list(self):
+        result = self.grant_builder.get_assistant_list()
+        return result
+
+    def cmd_add_new_assistant(self, data):
+        result = self.grant_builder.add_new_assistant(data)
+        return result
+
+    def cmd_create_run(self, user, name, assistant_id):           # IS THIS RIGHT, Can it be deleted?
         result = self.grant_builder.create_run(user, name, assistant_id)
         return result
 
@@ -154,13 +154,35 @@ class Commands(object):
         if not thread:
             return False            # return a message or something???
         message = Message(self.grant_builder, thread)
-        message.add_content(cmd['content'], cmd['role'])
+        # TODO:  Any file attachments must be added before this call
+        message.add_content_and_create_message_in_thread(cmd['content'], cmd['role'])
         return message
+
+    def cmd_update_message(self, message_id, role, thread_name, content):
+        result = self.grant_builder.update_message(message_id, role, thread_name, content)
+        return result
 
     def cmd_get_thread_messages(self, thread_name):
         """Retrieve list of dictionaries representing messages from the last query run."""
+        if not self.grant_builder:
+            foo = 3
         thread = self.grant_builder.get_thread_by_name(thread_name)
         thread.update_messages()
         result = thread.get_most_recent_responses()
+        return result
+
+    def cmd_get_last_results(self, user, thread_name, assistant_id):
+        thread = self.thread_manager.get_known_thread_entry_from_name(thread_name)
+        result = thread.get_most_recent_responses()
+        if result is None or result is []:
+            return "There were no results to return"
+        return result
+
+    def cmd_delete_thread(self, thread_name):
+        result = self.grant_builder.delete_thread(thread_name)
+        return result
+
+    def cmd_delete_assistant(self, assistant_id):
+        result = self.grant_builder.delete_assistant(assistant_id)
         return result
 

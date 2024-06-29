@@ -102,75 +102,75 @@ def driver():
             traceback.print_exc()
         logger.close_logger()
 
-    if write_grants:
-        logger = BasicLogger('write_grants', logs_directory)
-        target_directory = work_directory + 'worktemp/'
-        try:
-            outfile = "/home/don/Documents/Temp/outfile.txt"
-            output_mgr = PrintAndSave(outfile, True)
-
-            vector_store_id = config['keys']['vectorStore']
-            assistant_id = config['keys']['assistant']
-            api_key = config['keys']['openAIKey']
-
-
-            # assistant_id = None
-            assistant_instructions = """Attempt to fill out the Letter of Intent (LOI) using information from the vector store
-            wherever possibly.  Where you are unable to determine an appropriate response, insert a note enclosed in angle brackets
-            indicating that you could not develop the response and, if possible, why not.  Do not guess or make up facts not in
-            evidence."""
-            assistant_instructions = """Use an informal voice. """
-
-            # USE ChatCompletion API
-            # builder = WriterAssistant("My Assistent", api_key)
-            # thread_id = builder.get_thread_id()
-            # out_message = builder.get_response(thread_id, "Do Something")
-
-            #USE Assistants API
-            show_json = False
-            grant_builder = GrantWriter(api_key, output_mgr, assistant_id, vector_store_id, show_json=show_json)    # FIX SIGNATURE
-            cl = grant_builder.get_client()
-
-            # create/use file manager
-            file_obj = FileManager(cl)
-            file_obj.attach_file("/home/don/PycharmProjects/grant_assistant/body_of_knowledge/Annual Data/Program Report FY 2023.docx",
-                                 "user_data")
-            file_obj.pass_file_to_thread(grant_builder.get_thread().id)
-
-            vs_mgr = grant_builder.create_vector_store("VS1", vector_store_id=vector_store_id, show_json=show_json)
-            vs_list = grant_builder.get_vector_stores()
-            vector_store_id = vs_list[0].get_vector_store_id()   # we will assume there is a single VS in use.
-
-            file_list = list_files_in_directory("/home/don/PycharmProjects/grant_assistant/body_of_knowledge")
-            vs_mgr.add_files_to_store(file_list)
-
-            grant_builder.update_assistant(instructions=assistant_instructions,
-                                           tools=[{"type": "file_search"}],
-                                           tool_resources={"file_search": {"vector_store_ids": [vector_store_id]}}
-                                           )
-            role = "user"
-            content = "What cities have offices?"
-            msg = grant_builder.add_message(role, content)
-            # self.message = self.client.beta.threads.messages.create(
-            #     thread_id=self.thread.id,
-            #     role="user",
-            #     content="What cities have offices?",
-            #     attachments=[{"file_id": self.test_file.id,
-            #                   "tools": [{"type": "file_search"}]}]
-            # )
-
-            # message = MessageManager(cl, grant_builder.get_thread())
-            # content = "Fill out the LOI in the associated file using information from the vector store"
-            # message.add_content(content, "user")
-            # message.add_file_attachment("/home/don/Documents/Wonders/test forms/Kronkosky - LOI.docx")
-            # message.create_oai_message()
-
-            grant_builder.run_assistant()
-            output_mgr.close()
-        except Exception as e:
-            print(e)
-            traceback.print_exc()
-        logger.close_logger()
+    # if write_grants:
+    #     logger = BasicLogger('write_grants', logs_directory)
+    #     target_directory = work_directory + 'worktemp/'
+    #     try:
+    #         outfile = "/home/don/Documents/Temp/outfile.txt"
+    #         output_mgr = PrintAndSave(outfile, True)
+    #
+    #         vector_store_id = config['keys']['vectorStore']
+    #         assistant_id = config['keys']['assistant']
+    #         api_key = config['keys']['openAIKey']
+    #
+    #
+    #         # assistant_id = None
+    #         assistant_instructions = """Attempt to fill out the Letter of Intent (LOI) using information from the vector store
+    #         wherever possibly.  Where you are unable to determine an appropriate response, insert a note enclosed in angle brackets
+    #         indicating that you could not develop the response and, if possible, why not.  Do not guess or make up facts not in
+    #         evidence."""
+    #         assistant_instructions = """Use an informal voice. """
+    #
+    #         # USE ChatCompletion API
+    #         # builder = WriterAssistant("My Assistent", api_key)
+    #         # thread_id = builder.get_thread_id()
+    #         # out_message = builder.get_response(thread_id, "Do Something")
+    #
+    #         #USE Assistants API
+    #         show_json = False
+    #         grant_builder = GrantWriter(api_key, output_mgr, assistant_id, vector_store_id, show_json=show_json)    # FIX SIGNATURE
+    #         cl = grant_builder.get_client()
+    #
+    #         # create/use file manager
+    #         file_obj = FileManager(cl)
+    #         file_obj.attach_file("/home/don/PycharmProjects/grant_assistant/body_of_knowledge/Annual Data/Program Report FY 2023.docx",
+    #                              "user_data")
+    #         file_obj.pass_file_to_thread(grant_builder.get_thread().id)
+    #
+    #         vs_mgr = grant_builder.create_vector_store("VS1", vector_store_id=vector_store_id, show_json=show_json)
+    #         vs_list = grant_builder.get_vector_stores()
+    #         vector_store_id = vs_list[0].get_vector_store_id()   # we will assume there is a single VS in use.
+    #
+    #         file_list = list_files_in_directory("/home/don/PycharmProjects/grant_assistant/body_of_knowledge")
+    #         vs_mgr.add_files_to_store(file_list)
+    #
+    #         grant_builder.update_assistant(instructions=assistant_instructions,
+    #                                        tools=[{"type": "file_search"}],
+    #                                        tool_resources={"file_search": {"vector_store_ids": [vector_store_id]}}
+    #                                        )
+    #         role = "user"
+    #         content = "What cities have offices?"
+    #         msg = grant_builder.add_message(role, content)
+    #         # self.message = self.client.beta.threads.messages.create(
+    #         #     thread_id=self.thread.id,
+    #         #     role="user",
+    #         #     content="What cities have offices?",
+    #         #     attachments=[{"file_id": self.test_file.id,
+    #         #                   "tools": [{"type": "file_search"}]}]
+    #         # )
+    #
+    #         # message = MessageManager(cl, grant_builder.get_thread())
+    #         # content = "Fill out the LOI in the associated file using information from the vector store"
+    #         # message.add_content(content, "user")
+    #         # message.add_file_attachment("/home/don/Documents/Wonders/test forms/Kronkosky - LOI.docx")
+    #         # message.create_oai_message()
+    #
+    #         grant_builder.run_assistant()
+    #         output_mgr.close()
+    #     except Exception as e:
+    #         print(e)
+    #         traceback.print_exc()
+    #     logger.close_logger()
 
     if prototyping:
         logger = BasicLogger('prototyping', logs_directory)
