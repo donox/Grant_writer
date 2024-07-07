@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+{% extends 'base.html' %}
+
+{% block title %}Wonders and  Worries{% endblock %}
+
+{% block content %}
+
+<div id="assistant1" class="container">
+    <div class="row assistantName">
+        <div class="col-3 lbl">
+            <label for="el01" class="col-form-label">Name</label>
+        </div>
+        <div class="col-7 cntnt">
+            <span id="el01" data-name="assistantName"></span>
+        </div>
+        <div class="col update">
+            <button type="button" class="updateX">Update Name</button>
+        </div>
+    </div>
+</div>
+<div class="row assistantID">
+    <div class="col-3 lbl">
+        <label for="el02" class="col-form-label">ID</label>
+    </div>
+    <div class="col-7 cntnt">
+        <span id="el02" data-name="assistantID" class="form-text"></span>
+    </div>
+    <div class="col update">
+        <button type="button" class="update">Update ID</button>
+    </div>
+</div>
+<div class="row assistantInstructions">
+    <div class="col-3 lbl">
+        <label for="el03" class="col-form-label">Instructions</label>
+    </div>
+    <div class="col-7 cntnt">
+             <textarea id="el03" data-name="assistantInstructions"
+                       class="edit-content expandingTextarea bg-primary-subtle">HI THERE
+                </textarea>
+    </div>
+    <div class="col update">
+        <button type="button" class="update">Update Instructions</button>
+    </div>
+</div>
+
+</div>
+
+<script>
+    let processInstruction = function (element, data) {
+        let modifiedInstruction = element.val();
+        $.ajax({
+            url: '/update-instructions',
+            type: 'POST',
+            contentType: 'application/json',
+            dataType: 'json',
+            data: JSON.stringify({
+                instructions: modifiedInstruction,
+                name: data.name,
+                id: data.id
+            }),
+            success: function (data) {
+                console.log("SUCCESS: process instructions " + element.val());
+            },
+            error: function (xhr, status, error) {
+                console.error("Error on process instruction", error);
+            }
+        });
+        console.log("process instructions " + element.val());
+    };
+    let processName = function (element, data) {
+        console.log("process Name " + element.text());
+    }
+    let processID = function (element, data) {
+        console.log("process ID " + element.text());
+    }
+    //Click event handler for Update Button
+    let processUpdate = function (data) {
+        return function () {
+            const row = this.parentElement.parentElement;
+            const contentArea = row.querySelector('textarea, span');
+            // console.log("CONTENT" + contentArea.outerHTML)
+            let ca = $(contentArea);
+            let kind = ca.data()['name']
+            if (kind == "assistantInstructions") {
+                processInstruction(ca, data)
+            } else if (kind == "assistantName") {
+                processName(ca, data)
+            } else if (kind == "assistantID") {
+                processID(ca, data)
+            }
+        }
+    };
+
+    $(document).ready(function () {
+        // Parse URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const assistantData = {
+            name: urlParams.get('name'),
+            id: urlParams.get('assistant')
+        }
+
+
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('click', processUpdate(assistantData))
+        })
+        $('#el01').text(assistantData.name);
+        $('#el02').text(assistantData.id);
+
+
+        // updateButtons.addEventListener("click", processUpdate)
+
+        // Adjust height on input event for each textarea
+        $('.expandingTextarea').each(function () {
+            adjustHeight(this); // Initial adjustment on page load
+
+            $(this).on('input', function () {
+                adjustHeight(this);
+            });
+        });
+
+        let find_and_load_assistant = function () {
+            $.ajax({
+                url: '/load-assistant/',
+                type: 'POST',
+                data: {id: assistantData.id},
+                success: function (response) {
+                    // alert("Now using thread:" + response.name);
+                    $('#el01').text(response.name);
+                    $('#el02').text(response.id);
+                    $('#el03').text(response.instructions);
+
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error filling assistant:", error);
+                },
+            });
+        };
+        find_and_load_assistant();
+
+        let load_query_editor = function () {
+            // Initialize TinyMCE on the initial textarea
+            let base = $('.result')
+            let text_area = base.find('.edit-content')
+
+            // Click handler for the query button
+            $('.query').on('click', function () {
+                // Get the content from TinyMCE
+                let content = encodeURIComponent(text_area.val());
+                // console.log(content)
+
+                // Make an AJAX call to the server
+                $.ajax({
+                    url: '/query',
+                    method: 'POST',
+                    data: {
+                        content: content,
+                        thread: threadName,
+                        user: user,
+                        assistant: assistant,
+                    },
+                    success: function (response) {
+                        // Assuming response is an array of items
+                        // NOT YET WRITTEN
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('AJAX Error: ' + status + error);
+                    }
+                });
+            });
+        };
+        // load_query_editor();
+    });
+</script>
+
+{% endblock %}

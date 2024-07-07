@@ -3,9 +3,60 @@ from openai import AssistantEventHandler
 from typing_extensions import override
 
 
-class Assistant(object):
-    assistant_count = 1
+class AssistantManager(object):
+    def __init__(self, grant_builder):
+        self.grant_builder = grant_builder
+        self.client = self.grant_builder.get_client()   # OAI c
+        self.known_assistants = []
 
+    def create_assistant(self, name):
+        assistant = Assistant(self.grant_builder, name=name)
+        self.known_assistants.append(assistant)
+
+    def retrieve_existing_assistants(self):
+        assistant_list = self.client.beta.assistants.list()
+        for assistant in assistant_list:
+            mgr = Assistant(self.client, assistant_id=assistant.id)
+            self.known_assistants.append(mgr)
+
+    def get_assistants_as_list_of_dictionaries(self):
+        result = []
+        for assistant in self.known_assistants:
+            result.append({"name": assistant.get_name(),
+                           "id": assistant.get_id()})
+        return result
+
+    def get_assistant_from_id(self, assistant_id):
+        res = [x for x in self.known_assistants if x.get_id() == assistant_id]
+        if res:
+            return res[0]
+        else:
+            return None
+
+    def get_assistant_data(self, assistant_id):
+        assistant = self.get_assistant_from_id(assistant_id)
+        return assistant.get_content_data()
+
+    def delete_assistant(self, assistant_id):
+        this_assistant = None
+        for x in self.known_assistants:
+            if x.get_id() == assistant_id:
+                this_assistant = x
+        if not this_assistant:
+            print(f"Assistant {assistant_id} was not found getting error")
+            return False
+        try:
+            result = self.client.beta.assistants.delete(this_assistant.get_id())
+        except Exception as e:     # openAI - NotFoundError
+            print(f"Assistant {assistant_id} was not found getting error {e.args}")
+            return False
+        if result.deleted:
+            self.known_assistants.remove(this_assistant)
+            this_assistant = None
+        return result.deleted               # True/False
+
+
+class Assistant(object):
     def __init__(self, client, name=None, assistant_id=None):
         self.client = client
         self.name = name
@@ -20,9 +71,6 @@ class Assistant(object):
             except Exception as e:
                 print(f"Not Found: {self.id}")
         else:
-            if not self.name:
-                self.name = f"Assistant-{Assistant.assistant_count}"
-                Assistant.assistant_count += 1
             self.assistant = self.client.beta.assistants.create(
                 name=self.name,
                 instructions=None,
@@ -40,6 +88,12 @@ class Assistant(object):
 
     def get_oai_assistant(self):
         return self.assistant
+
+    def get_content_data(self):
+        res = {"name": self.name,
+               "id": self.id,
+               "instructions": self.assistant.instructions}
+        return res
 
     def update_assistant(self, description=None, instructions=None, metadata=None, name=None,
                          response_format=None, temperature=None, tool_resources=None, tools=None, top_p=None, **kwargs):
@@ -62,7 +116,12 @@ class Assistant(object):
             params["tools"] = tools
         if top_p:
             params["top_p"] = top_p
-        self.assistant = self.client.beta.assistants.update(**params)
+        try:
+            self.assistant = self.client.beta.assistants.update(**params)
+        except Exception as e:
+            print(f"Failure updating assistant: {e.args}")
+            return False
+        return True
 
     def add_vector_store(self, vector_store):
         """Add vector store to an assistant."""

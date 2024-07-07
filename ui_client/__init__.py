@@ -2,6 +2,7 @@ from flask import Flask, g
 from config import Config
 import ui_client.routes.start as start
 import ui_client.routes.messages as message
+import ui_client.routes.assistant_page as assist
 from ui_control.command_processor import Commands
 from ui_control.client_interface import ClientInterface
 
@@ -15,6 +16,7 @@ def create_app(secret_key, client_interface, assistant):
     app.config['ASSISTANT'] = assistant                    # Current known assistant (should get from client)
     app.register_blueprint(start.bp)
     app.register_blueprint(message.msg)
+    app.register_blueprint(assist.ap)
 
     with app.app_context():
         return app

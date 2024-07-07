@@ -32,12 +32,12 @@ function get_list_of_threads() {
                 });
                 let purposeCell = $('<td></td>').text(thread.purpose);
                 let deleteButton = $('<button type="button" class="deleteThread btn btn-primary">Delete</button>')
-                 row.append(nameCell, purposeCell, deleteButton);
+                row.append(nameCell, purposeCell, deleteButton);
                 tbodyObj.append(row);
             });
             $('#threads').append(tbodyObj.outerHTML)
             // location.href = location.href;    //cause page to reload
-            $('.deleteThread').on('click', function (){
+            $('.deleteThread').on('click', function () {
                 const threadText = $(this).closest('.threadRow').find('.threadName').text();
 
                 $.ajax({
@@ -46,11 +46,11 @@ function get_list_of_threads() {
                     data: {
                         text: threadText
                     },
-                    success: function (response){
+                    success: function (response) {
                         get_list_of_threads();
                         console.log('Success', response);
                     },
-                    error: function (error){
+                    error: function (error) {
                         console.log('Error', error);
                     }
                 })
@@ -91,17 +91,17 @@ function get_list_of_assistants() {
                         })
                     } else {
                         // alert("USE THREAD" + thread.name);
-                        switchToAssistant(assistant.name);
+                        switchToAssistant(assistant.name, assistant.id);
                     }
                 });
-                let idCell = $('<td class="assistantID"></td>').text(assistant.id);
+                let idCell = $('<td class="assistantID isSelected"></td>').text(assistant.id);
                 let deleteButton = $('<button type="button" class="deleteAssistant btn btn-primary">Delete</button>')
-                 row.append(nameCell, idCell, deleteButton);
+                row.append(nameCell, idCell, deleteButton);
                 tbodyObj.append(row);
             });
             $('#assistants').append(tbodyObj.outerHTML)
             // location.href = location.href;    //cause page to reload
-            $('.deleteAssistant').on('click', function (){
+            $('.deleteAssistant').on('click', function () {
                 const assistantText = $(this).closest('.assistantRow').find('.assistantID').text();
 
                 $.ajax({
@@ -110,15 +110,22 @@ function get_list_of_assistants() {
                     data: {
                         text: assistantText
                     },
-                    success: function (response){
+                    success: function (response) {
                         get_list_of_assistants();
                         console.log('Success', response);
                     },
-                    error: function (error){
+                    error: function (error) {
                         console.log('Error', error);
                     }
                 })
             })
+            $('.isSelected').each(function () {
+                $(this).addClass('clickable');
+                $(this).on('click', function () {
+                    $('#assistants .assistantID').removeClass('isSelected').removeClass('bg-info');
+                    $(this).addClass('isSelected').addClass('bg-info');
+                });
+            });
 
         },
         error: function (xhr, status, error) {
@@ -188,20 +195,18 @@ function switchToQuery(name, user) {
 }
 
 //Swtich user page to assistant manager page
-function switchToAssistant(name, user) {
+function switchToAssistant(name, id) {
     $.ajax({
-        url: '/switch-to-assistant/' + user,
+        url: '/switch-to-assistant/',
         type: 'POST',
         contentType: 'application/json',
         dataType: 'json',
-        data: JSON.stringify({name: name}),
+        data: JSON.stringify({name: name, id: id}),
         success: function (response) {
-            // alert("Now using thread:" + response.name);
             if (response.redirectUrl) {
                 window.location.href = response.redirectUrl;
-                $('#threaduser').val(response.user);
-                $('#threadname').val(response.thread_name);
-                $('#threadassistant').val(response.assistant);
+                $('#e101').val(response.name);
+                $('#e102').val(response.assistant);
             }
         },
         error: function (xhr, status, error) {

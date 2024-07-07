@@ -5,6 +5,7 @@ from assistant.vector_store_manager import VectorStoreManager
 from assistant.io_manager import PrintAndSave
 from assistant.thread_manager import ThreadManager, Thread
 from assistant.message_manager import Message
+from assistant.assistant_manager import AssistantManager
 
 
 class Commands(object):
@@ -31,8 +32,11 @@ class Commands(object):
                                    'cmd_update_message': self.cmd_update_message,
                                    'cmd_get_assistant_list': self.cmd_get_assistant_list,
                                    'cmd_add_new_assistant': self.cmd_add_new_assistant,
+                                   'cmd_get_assistant_data': self.cmd_get_assistant_data,
+                                   'cmd_update_assistant_instructions': self.cmd_update_assistant_instructions,
                                    }
         self.grant_builder = None
+        self.assistant_manager = None
         self.output_manager = None
         self.client = None  # OpenAI assistant
         self.file_manager = None
@@ -78,11 +82,14 @@ class Commands(object):
         self.output_manager = PrintAndSave(self.results_path, True)
 
         self.vector_store_id = self.config['keys']['vectorStore']
-        self.assistant_id = self.config['keys']['assistant']
+        self.assistant_id = self.config['keys']['assistant']         # !!!!!!!!!!!!!!!!!!!!!!!!!!!
         self.api_key = self.config['keys']['openAIKey']
         self.thread_path = self.config['paths']['threadList']     # We have to keep a list of known threads ourselves
         self.thread_manager = ThreadManager(self.thread_path)
         self.grant_builder = GrantWriter(self.api_key, self.output_manager, self.thread_manager, self.assistant_id, self.vector_store_id)
+        self.assistant_manager = AssistantManager(self.grant_builder)
+        self.assistant_manager.retrieve_existing_assistants()
+        self.grant_builder.set_assistant_manager(self.assistant_manager)
         self.thread_manager.set_grant_builder(self.grant_builder)
         self.client = self.grant_builder.get_client()
 
@@ -136,11 +143,15 @@ class Commands(object):
         return result
 
     def cmd_get_assistant_list(self):
-        result = self.grant_builder.get_assistant_list()
+        result = self.assistant_manager.get_assistants_as_list_of_dictionaries()
         return result
 
     def cmd_add_new_assistant(self, data):
         result = self.grant_builder.add_new_assistant(data)
+        return result
+
+    def cmd_get_assistant_data(self, assistant_id):
+        result = self.assistant_manager.get_assistant_data(assistant_id)
         return result
 
     def cmd_create_run(self, user, name, assistant_id):           # IS THIS RIGHT, Can it be deleted?
@@ -183,6 +194,12 @@ class Commands(object):
         return result
 
     def cmd_delete_assistant(self, assistant_id):
-        result = self.grant_builder.delete_assistant(assistant_id)
+        result = self.assistant_manager.delete_assistant(assistant_id)
         return result
+
+    def cmd_update_assistant_instructions(self, assistant_id, instructions):
+        assistant = self.assistant_manager.get_assistant_from_id(assistant_id)
+        result = assistant.update_assistant(instructions=instructions)
+        return result
+
 

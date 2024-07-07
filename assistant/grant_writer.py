@@ -5,7 +5,7 @@ from openai import OpenAI
 from assistant.vector_store_manager import VectorStoreManager, get_known_vector_stores
 from assistant.message_manager import Message
 from assistant.thread_manager import Thread
-from assistant.assistant_manager import Assistant
+from assistant.assistant_manager import Assistant, AssistantManager
 
 #  URL's  used to try to get this to work!!
 #  https://github.com/openai/openai-python/blob/main/src/openai/resources/beta/threads/threads.py
@@ -19,10 +19,13 @@ class GrantWriter(object):
         self.assistant_list = []
         self.output_mgr = output_mgr
         self.thread_manager = thread_manager
+        self.assistant_manager = None
         self.vector_store_list = []  # list of vector_store_manager objects that have been instantiated
-        self.get_existing_assistants()
         self.get_existing_vector_stores()
         # OpenAI.beta.threads.runs.list()
+
+    def set_assistant_manager(self, assistant_manager):    # Avoid circular calls
+        self.assistant_manager = assistant_manager
 
     def add_message_to_thread(self, thread, content, role):
         """add new message to existing thread, returning OIA message."""
@@ -53,11 +56,8 @@ class GrantWriter(object):
     def get_vector_stores(self):
         return self.vector_store_list
 
-    def get_existing_assistants(self):
-        assistant_list = self.client.beta.assistants.list()
-        for assistant in assistant_list:
-            mgr = Assistant(self.client, assistant_id=assistant.id)
-            self.assistant_list.append(mgr)
+    # def retrieve_existing_assistants(self):
+    #     self.assistant_manager.retrieve_existing_assistants()
 
     def get_existing_vector_stores(self):
         vs_list = self.client.beta.vector_stores.list()
@@ -93,37 +93,19 @@ class GrantWriter(object):
             self.thread_manager.delete_thread(thread_name)
         return result.deleted               # True/False
 
-    def get_assistant_list(self):
-        result = []
-        for assistant in self.assistant_list:
-            result.append({'name': assistant.get_name(),
-                           'id': assistant.get_id()})
-        return result
-
-    def delete_assistant(self, assistant_id):
-        this_assistant = None
-        for x in self.assistant_list:
-            if x.get_id() == assistant_id:
-                this_assistant = x
-        if not this_assistant:
-            print(f"Assistant {assistant_id} was not found getting error {e.args}")
-            return False
-        try:
-            result = self.client.beta.assistants.delete(this_assistant.get_id())
-        except Exception as e:     # openAI - NotFoundError
-            print(f"Assistant {assistant_id} was not found getting error {e.args}")
-            return False
-        if result.deleted:
-            self.assistant_list.remove(this_assistant)
-            this_assistant = None
-        return result.deleted               # True/False
+    # def get_assistant_list(self):
+    #     result = []
+    #     for assistant in self.assistant_list:
+    #         result.append({'name': assistant.get_name(),
+    #                        'id': assistant.get_id()})
+    #     return result
 
     def create_run(self, user, name, assistant_id):
         thread = self.thread_manager.get_known_thread_entry_from_name(name)
         thread_id = thread.thread_id
         oai_thread = self.get_oai_thread(thread_id)
-        assistant = [x for x in self.assistant_list if x.get_id() == assistant_id]
-        if assistant and len(assistant) == 1:
+        assistant = self.assistant_manager.get_assistant_from_id(assistant_id)
+        if assistant:
             run = self.client.beta.threads.runs.create(thread_id=thread_id, assistant_id=assistant[0].get_id())
             run = self.wait_on_run(run, oai_thread)
             return run

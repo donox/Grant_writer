@@ -111,29 +111,29 @@ def switch_to_query(user):
         except Exception as e:
             print(f"Error decoding json from add thread: {e}")
             return render_template('index.html')
-    tmplt = jsonify({'redirectUrl': url_for('message.query_processor',
+    tmplt = jsonify({'redirectUrl': url_for('assistant_page.assistant_processor',
                                             name=thread_name,
                                             user=user,
                                             assistant=assistant_id)})
     return tmplt
 
+
 # Switch page to assistant view
-@bp.route('/switch-to-assistant', methods=['POST'])
+@bp.route('/switch-to-assistant/', methods=['POST'])
 def switch_to_assistant():
-    print("HELLO")
+    print("HELLO")              # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ci = client_interface()
-    assistant_id = current_app.config['ASSISTANT']  # !!!!! TEMPORARY TILL ACTUAL SELECTION
     data = None
     if request.method == 'POST':
         try:
-            thread_name = request.json.get('name')  # Use request.json to get JSON data
+            assistant_name = request.json.get('name')  # Use request.json to get JSON data
+            assistant_id = request.json.get('id')
         except Exception as e:
             print(f"Error decoding json from add thread: {e}")
             return render_template('index.html')
-    tmplt = jsonify({'redirectUrl': url_for('message.query_processor',
-                                            name=thread_name,
-                                            user=user,
-                                            assistant=assistant_id)})
+    tmplt = jsonify({'redirectUrl': url_for('assistant_page.assistant_processor'),
+                                            'name': assistant_name,
+                                            'assistant': assistant_id})
     return tmplt
 
 

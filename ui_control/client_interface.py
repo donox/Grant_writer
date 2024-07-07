@@ -56,6 +56,9 @@ class ClientInterface(object):
         result = self.command_processor.cmd_add_new_assistant(data)
         return result
 
+    def cmd_get_assistant_data(self, assistant_id):
+        result = self.command_processor.cmd_get_assistant_data(assistant_id)
+        return result
     def cmd_create_run(self, user,  name, assistant_id):
         result = self.command_processor.cmd_create_run(user, name, assistant_id)
         return result
@@ -68,6 +71,10 @@ class ClientInterface(object):
         result = self.command_processor.cmd_delete_thread(thread_name)
         return result
 
-    def cmd_delete_assistant(self, assistand_id):
-        result = self.command_processor.cmd_delete_assistant(assistand_id)
+    def cmd_delete_assistant(self, assistant_id):
+        result = self.command_processor.cmd_delete_assistant(assistant_id)
+        return result
+
+    def cmd_update_assistant_instructions(self, assistant_id, instructions):
+        result = self.command_processor.cmd_update_assistant_instructions(assistant_id, instructions)
         return result
