@@ -106,7 +106,7 @@ class GrantWriter(object):
         oai_thread = self.get_oai_thread(thread_id)
         assistant = self.assistant_manager.get_assistant_from_id(assistant_id)
         if assistant:
-            run = self.client.beta.threads.runs.create(thread_id=thread_id, assistant_id=assistant[0].get_id())
+            run = self.client.beta.threads.runs.create(thread_id=thread_id, assistant_id=assistant.get_id())
             run = self.wait_on_run(run, oai_thread)
             return run
         else:

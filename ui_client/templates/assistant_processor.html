@@ -137,6 +137,34 @@
         };
         find_and_load_assistant();
 
+        // let find_and_load_assistant = function () {
+        //     fetch('/load-assistant/', {
+        //         method: 'POST',
+        //         headers: {
+        //             'Content-Type': 'application/json'
+        //         },
+        //         body: JSON.stringify({id: assistantData.id})
+        //     })
+        //         .then(response => {
+        //             if (!response.ok) {
+        //                 throw new Error('Network response was not ok');
+        //             }
+        //             return response.json();
+        //         })
+        //         .then(response => {
+        //             // alert("Now using thread:" + response.name);
+        //             document.getElementById('el01').textContent = response.name;
+        //             document.getElementById('el02').textContent = response.id;
+        //             document.getElementById('el03').textContent = response.instructions;
+        //         })
+        //         .catch(error => {
+        //             console.error("Error filling assistant:", error);
+        //         });
+        // };
+        //
+        // find_and_load_assistant();
+
+
         let load_query_editor = function () {
             // Initialize TinyMCE on the initial textarea
             let base = $('.result')

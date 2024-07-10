@@ -148,6 +148,7 @@ class Commands(object):
 
     def cmd_add_new_assistant(self, data):
         result = self.grant_builder.add_new_assistant(data)
+        self.assistant_manager.retrieve_existing_assistants()
         return result
 
     def cmd_get_assistant_data(self, assistant_id):

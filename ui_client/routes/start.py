@@ -49,7 +49,7 @@ def get_thread_list(user):
     run_setup(ci)
     tmp = ci.cmd_get_thread_list(user)
     result = []
-    for r in tmp:               # remove references to thread object which cannot be jsonified.
+    for r in tmp:  # remove references to thread object which cannot be jsonified.
         r_copy = r.copy()
         r_copy["ww_thread"] = None
         result.append(r_copy)
@@ -100,18 +100,20 @@ def add_new_assistant():
 
 
 # Switch page to query view
-@bp.route('/switch-to-query/<user>', methods=['POST'])
-def switch_to_query(user):
+@bp.route('/switch-to-query/', methods=['POST'])
+def switch_to_query():
     ci = client_interface()
+    # TODO:  After switching to a query, need to load existing content.
     assistant_id = current_app.config['ASSISTANT']  # !!!!! TEMPORARY TILL ACTUAL SELECTION
     data = None
     if request.method == 'POST':
         try:
-            thread_name = request.json.get('name')  # Use request.json to get JSON data
+            thread_name = request.json.get('name');  # Use request.json to get JSON data
+            user = request.json.get('user')
         except Exception as e:
             print(f"Error decoding json from add thread: {e}")
             return render_template('index.html')
-    tmplt = jsonify({'redirectUrl': url_for('assistant_page.assistant_processor',
+    tmplt = jsonify({'redirectUrl': url_for('message.query_processor',
                                             name=thread_name,
                                             user=user,
                                             assistant=assistant_id)})
@@ -121,19 +123,18 @@ def switch_to_query(user):
 # Switch page to assistant view
 @bp.route('/switch-to-assistant/', methods=['POST'])
 def switch_to_assistant():
-    print("HELLO")              # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ci = client_interface()
-    data = None
     if request.method == 'POST':
         try:
-            assistant_name = request.json.get('name')  # Use request.json to get JSON data
-            assistant_id = request.json.get('id')
+            data = json.loads(request.data)
+            assistant_name = data['name']
+            assistant_id =data['id']
         except Exception as e:
             print(f"Error decoding json from add thread: {e}")
             return render_template('index.html')
     tmplt = jsonify({'redirectUrl': url_for('assistant_page.assistant_processor'),
-                                            'name': assistant_name,
-                                            'assistant': assistant_id})
+                     'name': assistant_name,
+                     'assistant': assistant_id})
     return tmplt
 
 
@@ -159,8 +160,6 @@ def delete_assistant():
             return render_template('index.html', messages="", content=" ")
         else:
             return jsonify(success=f"Failed to delete assistant {assistant_id}")
-
-
 
 # @bp.route('/add', methods=['GET', 'POST'])
 # def add_message():

@@ -173,46 +173,79 @@ function addAssistant(jsonData) {
 
 //Swtich user page to query_processor
 function switchToQuery(name, user) {
-    $.ajax({
-        url: '/switch-to-query/' + user,
-        type: 'POST',
-        contentType: 'application/json',
-        dataType: 'json',
-        data: JSON.stringify({name: name}),
-        success: function (response) {
-            // alert("Now using thread:" + response.name);
-            if (response.redirectUrl) {
-                window.location.href = response.redirectUrl;
-                $('#threaduser').val(response.user);
-                $('#threadname').val(response.thread_name);
-                $('#threadassistant').val(response.assistant);
+    let data = {
+        name: name,
+        user: user,
+        // assistant: assistant
+    }
+    fetch('/switch-to-query/', {
+        method: 'POST',
+        headers: {
+            contentType: 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+        .then(response => response.json())
+        .then(data => {
+                if (!Array.isArray(data)) {
+                    console.log('NOT DATA.' + data)
+                }
+                url = data['redirectUrl'];
+                window.location.href = url;
             }
-        },
-        error: function (xhr, status, error) {
-            console.error("Error adding thread:", error);
-        },
-    });
+        )
+        .catch(error => console.error('Fetch Error: ' + error))
 }
 
 //Swtich user page to assistant manager page
 function switchToAssistant(name, id) {
-    $.ajax({
-        url: '/switch-to-assistant/',
-        type: 'POST',
-        contentType: 'application/json',
-        dataType: 'json',
-        data: JSON.stringify({name: name, id: id}),
-        success: function (response) {
-            if (response.redirectUrl) {
-                window.location.href = response.redirectUrl;
-                $('#e101').val(response.name);
-                $('#e102').val(response.assistant);
+    let data = {name: name, id: id}
+    fetch('/switch-to-assistant/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (!Array.isArray(data)) {
+                console.log('NOT DATA.' + data)
             }
-        },
-        error: function (xhr, status, error) {
-            console.error("Error adding thread:", error);
-        },
-    });
+            let params = {name: data['name'], assistant: data['assistant']}
+            let queryString = Object.keys(params)
+                .map(function (key) {
+                    return encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
+                })
+                .join('&')
+            window.location.href = data['redirectUrl'] + "?" + queryString;
+        })
+        .catch(error => console.error('Fetch Error: ' + error))
+
+
+// $.ajax({
+//     url: '/switch-to-assistant/',
+//     type: 'POST',
+//     contentType: 'application/json',
+//     dataType: 'json',
+//     data: JSON.stringify({name: name, id: id}),
+//     success: function (response) {
+//         // Construct the query string
+//         let params = {name: response.name, assistant: response.assistant};
+//         let queryString = Object.keys(params)
+//             .map(function (key) {
+//                 return encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
+//             })
+//             .join('&');
+//         console.log(queryString);
+//         if (response.redirectUrl) {
+//             window.location.href = response.redirectUrl + "?" + queryString;
+//         }
+//     },
+//     error: function (xhr, status, error) {
+//         console.error("Error adding thread:", error);
+
+
 }
 
 

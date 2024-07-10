@@ -1,3 +1,5 @@
+import json
+
 from flask import render_template, request, redirect, url_for, flash, Blueprint, jsonify, current_app
 from urllib.parse import unquote
 
@@ -35,14 +37,15 @@ def run_query():
     if request.method == 'POST':
         # TODO: if content is empty, need to just update the message list (likely not on screen) and, possibly,
         # indicate that nothing was run.
-        msg_text = request.form.get('content')
-        user = request.form.get('user')
-        thread_name = request.form.get('thread')
-        assistant_id = request.form.get('assistant')
-        if 'urlencoded' in request.content_type:
-            msg_text = unquote(msg_text)
-        else:
-            print(f"/query content has content type: {request.content_type}")  # Probably will need json at a min
+        data = json.loads(request.data)
+        msg_text = unquote(data['content'])
+        user = data['user']
+        thread_name = data['thread']
+        assistant_id = data['assistant']
+        # if 'urlencoded' in request.content_type:
+        #     msg_text = unquote(msg_text)
+        # else:
+        #     print(f"/query content has content type: {request.content_type}")  # Probably will need json at a min
         if not msg_text:
             flash("Message text mst be non-empty", "fail")
             return jsonify("failure")

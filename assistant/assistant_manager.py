@@ -14,6 +14,7 @@ class AssistantManager(object):
         self.known_assistants.append(assistant)
 
     def retrieve_existing_assistants(self):
+        self.known_assistants = []
         assistant_list = self.client.beta.assistants.list()
         for assistant in assistant_list:
             mgr = Assistant(self.client, assistant_id=assistant.id)

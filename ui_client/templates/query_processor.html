@@ -19,7 +19,7 @@
             </form>
         </div>
         <div class="col">
-            <div class="row" hidden="True" >
+            <div class="row" hidden="True">
                 <button type="button" class="msg_update">Update</button>
             </div>
             <div class="row">
@@ -57,21 +57,27 @@
             $('.query').on('click', function () {
                 // Get the content from TinyMCE
                 let content = encodeURIComponent(text_area.val());
+                let data = {
+                    content: content,
+                    thread: threadName,
+                    user: user,
+                    assistant: assistant,
+                }
                 // console.log(content)
 
-                // Make an AJAX call to the server
-                $.ajax({
-                    url: '/query',
+                fetch('/query', {
                     method: 'POST',
-                    data: {
-                        content: content,
-                        thread: threadName,
-                        user: user,
-                        assistant: assistant,
+                    headers: {
+                        'Content-Type': 'application/json',
                     },
-                    success: function (response) {
-                        // Assuming response is an array of items
-                        response.forEach(function (item, index) {
+                    body: JSON.stringify(data)
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!Array.isArray(data)) {
+                            console.log('NOT DATA.' + data)
+                        }
+                        data.forEach(function (item, index) {
                             // Clone the result row
                             let newRow = base.clone(true);
 
@@ -89,20 +95,19 @@
                             });
                             adjustHeight(newRow.find('.edit-content')[0]);
                             let colorClass = 'bg-success';
-                            if (item.role == 'user'){
+                            if (item.role == 'user') {
                                 colorClass = 'userRoleCSS';
                             }
-                            if (item.role == 'assistant'){
+                            if (item.role == 'assistant') {
                                 colorClass = 'assistantRoleCSS';
                             }
                             newRow.contents().find('textarea').removeClass('bg-primary-subtle').addClass(colorClass);
                             newRow.contents().find('textarea').removeClass('bg-primary-subtle').addClass(colorClass);
-                        });
-                    },
-                    error: function (xhr, status, error) {
-                        console.error('AJAX Error: ' + status + error);
-                    }
-                });
+                        })
+                            .catch(error => console.error('Fetch Error: ' + error))
+                    })
+
+
             });
         };
         load_query_editor();

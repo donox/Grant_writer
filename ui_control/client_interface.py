@@ -49,6 +49,7 @@ class ClientInterface(object):
         return result
 
     def cmd_get_assistant_list(self):
+        print('CALLED')
         result = self.command_processor.cmd_get_assistant_list()
         return result
 
@@ -59,6 +60,7 @@ class ClientInterface(object):
     def cmd_get_assistant_data(self, assistant_id):
         result = self.command_processor.cmd_get_assistant_data(assistant_id)
         return result
+    
     def cmd_create_run(self, user,  name, assistant_id):
         result = self.command_processor.cmd_create_run(user, name, assistant_id)
         return result
