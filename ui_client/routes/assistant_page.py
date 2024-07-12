@@ -20,7 +20,8 @@ def load_assistant():
     run_setup(ci)
     if request.method == 'POST':
         try:
-            assistant_id = request.form.get('id')
+            data = json.loads(request.data)
+            assistant_id = data['id']
             result = ci.cmd_get_assistant_data(assistant_id)
             return jsonify(result)
         except Exception as e:

@@ -104,10 +104,8 @@
                             newRow.contents().find('textarea').removeClass('bg-primary-subtle').addClass(colorClass);
                             newRow.contents().find('textarea').removeClass('bg-primary-subtle').addClass(colorClass);
                         })
-                            .catch(error => console.error('Fetch Error: ' + error))
                     })
-
-
+                   .catch(error => console.error('Fetch Error: ' + error))
             });
         };
         load_query_editor();

@@ -48,25 +48,49 @@
 <script>
     let processInstruction = function (element, data) {
         let modifiedInstruction = element.val();
-        $.ajax({
-            url: '/update-instructions',
-            type: 'POST',
-            contentType: 'application/json',
-            dataType: 'json',
-            data: JSON.stringify({
-                instructions: modifiedInstruction,
-                name: data.name,
-                id: data.id
-            }),
-            success: function (data) {
-                console.log("SUCCESS: process instructions " + element.val());
+console.log("NAME:" + data.name);
+        let fetchData = {
+            instructions: modifiedInstruction,
+            name: data.name,
+            id: data.id
+        }
+        fetch('/update-instructions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
             },
-            error: function (xhr, status, error) {
-                console.error("Error on process instruction", error);
-            }
-        });
-        console.log("process instructions " + element.val());
-    };
+            body: JSON.stringify(fetchData)
+        })
+            .then(response => response.json())
+            .then(data => {
+                // Nothing returned - anything needed?
+                console.log("SUCCESS: process instructions " + element.val());
+            })
+            .catch(error => console.error('Fetch Error: ' + error))
+
+
+
+
+    // $.ajax({
+    //     url: '/update-instructions',
+    //     type: 'POST',
+    //     contentType: 'application/json',
+    //     dataType: 'json',
+    //     data: JSON.stringify({
+    //         instructions: modifiedInstruction,
+    //         name: data.name,
+    //         id: data.id
+    //     }),
+    //     success: function (data) {
+    //         console.log("SUCCESS: process instructions " + element.val());
+    //     },
+    //     error: function (xhr, status, error) {
+    //         console.error("Error on process instruction", error);
+    //     }
+    // });
+    console.log("process instructions " + element.val());
+    }
+    ;
     let processName = function (element, data) {
         console.log("process Name " + element.text());
     }
@@ -119,81 +143,79 @@
         });
 
         let find_and_load_assistant = function () {
-            $.ajax({
-                url: '/load-assistant/',
-                type: 'POST',
-                data: {id: assistantData.id},
-                success: function (response) {
-                    // alert("Now using thread:" + response.name);
-                    $('#el01').text(response.name);
-                    $('#el02').text(response.id);
-                    $('#el03').text(response.instructions);
-
+            let data = {id: assistantData.id};
+            fetch('/load-assistant/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
                 },
-                error: function (xhr, status, error) {
-                    console.error("Error filling assistant:", error);
-                },
-            });
+                body: JSON.stringify(data)
+            })
+                .then(response => response.json())
+                .then(data => {
+                        $('#el01').text(data['name']);
+                        $('#el02').text(data['id']);
+                        $('#el03').text(data['instructions']);
+                    }
+                )
+                .catch(error => console.error('Fetch Error(load-assistant): ' + error))
         };
         find_and_load_assistant();
-
-        // let find_and_load_assistant = function () {
-        //     fetch('/load-assistant/', {
-        //         method: 'POST',
-        //         headers: {
-        //             'Content-Type': 'application/json'
-        //         },
-        //         body: JSON.stringify({id: assistantData.id})
-        //     })
-        //         .then(response => {
-        //             if (!response.ok) {
-        //                 throw new Error('Network response was not ok');
-        //             }
-        //             return response.json();
-        //         })
-        //         .then(response => {
-        //             // alert("Now using thread:" + response.name);
-        //             document.getElementById('el01').textContent = response.name;
-        //             document.getElementById('el02').textContent = response.id;
-        //             document.getElementById('el03').textContent = response.instructions;
-        //         })
-        //         .catch(error => {
-        //             console.error("Error filling assistant:", error);
-        //         });
-        // };
-        //
-        // find_and_load_assistant();
-
 
         let load_query_editor = function () {
             // Initialize TinyMCE on the initial textarea
             let base = $('.result')
             let text_area = base.find('.edit-content')
 
-            // Click handler for the query button
+            // Click handler for the query button   ??? IS THIS USED SOMEWHERE???
             $('.query').on('click', function () {
                 // Get the content from TinyMCE
                 let content = encodeURIComponent(text_area.val());
                 // console.log(content)
 
-                // Make an AJAX call to the server
-                $.ajax({
-                    url: '/query',
+                let data = {
+                    content: content,
+                    thread: threadName,
+                    user: user,
+                    assistant: assistant,
+                }
+                console.log("DATA: " + data);
+                fetch('/query', {
                     method: 'POST',
-                    data: {
-                        content: content,
-                        thread: threadName,
-                        user: user,
-                        assistant: assistant,
+                    headers: {
+                        'Content-Type': 'application/json',
                     },
-                    success: function (response) {
-                        // Assuming response is an array of items
-                        // NOT YET WRITTEN
-                    },
-                    error: function (xhr, status, error) {
-                        console.error('AJAX Error: ' + status + error);
-                    }
-                });
+                    body: JSON.stringify(data)
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                            if (!Array.isArray(data)) {
+                                console.log('NOT DATA (OK - empty result.' + data)
+                            }
+                            //         // Assuming response is an array of items
+                            //         // NOT YET WRITTEN
+                        }
+                    )
+                    .catch(error => console.error('Fetch Error (/query): ' + error))
+
+                // Make an AJAX call to the server
+                // $.ajax({
+                //     url: '/query',
+                //     method: 'POST',
+                //     data: {
+                //         content: content,
+                //         thread: threadName,
+                //         user: user,
+                //         assistant: assistant,
+                //     },
+                //     success: function (response) {
+                //         // Assuming response is an array of items
+                //         // NOT YET WRITTEN
+                //     },
+                //     error: function (xhr, status, error) {
+                //         console.error('AJAX Error: ' + status + error);
+                //     }
+                // });
             });
         };
         // load_query_editor();

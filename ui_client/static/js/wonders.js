@@ -222,30 +222,6 @@ function switchToAssistant(name, id) {
         })
         .catch(error => console.error('Fetch Error: ' + error))
 
-
-// $.ajax({
-//     url: '/switch-to-assistant/',
-//     type: 'POST',
-//     contentType: 'application/json',
-//     dataType: 'json',
-//     data: JSON.stringify({name: name, id: id}),
-//     success: function (response) {
-//         // Construct the query string
-//         let params = {name: response.name, assistant: response.assistant};
-//         let queryString = Object.keys(params)
-//             .map(function (key) {
-//                 return encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
-//             })
-//             .join('&');
-//         console.log(queryString);
-//         if (response.redirectUrl) {
-//             window.location.href = response.redirectUrl + "?" + queryString;
-//         }
-//     },
-//     error: function (xhr, status, error) {
-//         console.error("Error adding thread:", error);
-
-
 }
 
 
