@@ -35,7 +35,7 @@
     </div>
     <div class="col-7 cntnt">
              <textarea id="el03" data-name="assistantInstructions"
-                       class="edit-content expandingTextarea bg-primary-subtle">HI THERE
+                       class="edit-content expandingTextarea bg-primary-subtle">instructions
                 </textarea>
     </div>
     <div class="col update">
@@ -68,26 +68,6 @@ console.log("NAME:" + data.name);
             })
             .catch(error => console.error('Fetch Error: ' + error))
 
-
-
-
-    // $.ajax({
-    //     url: '/update-instructions',
-    //     type: 'POST',
-    //     contentType: 'application/json',
-    //     dataType: 'json',
-    //     data: JSON.stringify({
-    //         instructions: modifiedInstruction,
-    //         name: data.name,
-    //         id: data.id
-    //     }),
-    //     success: function (data) {
-    //         console.log("SUCCESS: process instructions " + element.val());
-    //     },
-    //     error: function (xhr, status, error) {
-    //         console.error("Error on process instruction", error);
-    //     }
-    // });
     console.log("process instructions " + element.val());
     }
     ;
@@ -197,25 +177,6 @@ console.log("NAME:" + data.name);
                         }
                     )
                     .catch(error => console.error('Fetch Error (/query): ' + error))
-
-                // Make an AJAX call to the server
-                // $.ajax({
-                //     url: '/query',
-                //     method: 'POST',
-                //     data: {
-                //         content: content,
-                //         thread: threadName,
-                //         user: user,
-                //         assistant: assistant,
-                //     },
-                //     success: function (response) {
-                //         // Assuming response is an array of items
-                //         // NOT YET WRITTEN
-                //     },
-                //     error: function (xhr, status, error) {
-                //         console.error('AJAX Error: ' + status + error);
-                //     }
-                // });
             });
         };
         // load_query_editor();

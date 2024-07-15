@@ -71,16 +71,17 @@ def add_new_thread(user):
     run_setup(ci)
     if request.method == 'POST':
         try:
+            print(f"ADD NEW THREAD CALLED")
             data = json.loads([x for x in request.form.items()][0][0])
             data['user'] = user
         except Exception as e:
             print(f"Error decoding json from add thread: {e}")
             return render_template('index.html')
         result = ci.cmd_add_new_thread(data)
-        if result:
-            flash('Conversation file updated', 'success')
-        else:
-            flash('Failure updating conversation file', 'danger')
+        # if result:
+        #     flash('Conversation file updated', 'success')
+        # else:
+        #     flash('Failure updating conversation file', 'danger')
         return jsonify(result)
 
 
@@ -108,10 +109,13 @@ def switch_to_query():
     data = None
     if request.method == 'POST':
         try:
-            thread_name = request.json.get('name');  # Use request.json to get JSON data
-            user = request.json.get('user')
+            data = json.loads(request.data)
+            assistant_id =data['assistant']
+            thread_name = data['name']
+            user = data['user']
         except Exception as e:
             print(f"Error decoding json from add thread: {e}")
+            return render_template('index.html')
             return render_template('index.html')
     tmplt = jsonify({'redirectUrl': url_for('message.query_processor',
                                             name=thread_name,
@@ -142,10 +146,11 @@ def switch_to_assistant():
 def delete_thread():
     ci = client_interface()
     if request.method == 'POST':
-        threadName = request.form.get('text')
+        data = json.loads(request.data)
+        threadName = data['text']
         result = ci.cmd_delete_thread(threadName)
         if result:
-            return render_template('index.html', messages="", content=" ")
+            return jsonify({})
         else:
             return jsonify(success=f"Failed to delete {threadName}")
 

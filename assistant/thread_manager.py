@@ -62,9 +62,14 @@ class ThreadManager(object):
         try:
             with open(self.file, 'w') as thread_data:
                 writer = csv.writer(thread_data)
+                rows_written = []  # Hack to try to stop proliferation of copies
                 for row in self.known_oai_threads:
+                    # row:  don,t38,thread_lG0UyYgzw0DmHNffTOOwJPy1,hjgk
                     row_list = [row[x] for x in row if type(row[x]) is str]
-                    writer.writerow(row_list)     # remove reference to thread object
+                    if row_list[1] not in rows_written:
+                        rows_written.append(row_list[1])
+                        writer.writerow(row_list)     # remove reference to thread object
+                thread_data.close()
         except Exception as e:
             print(f"Failure writing threads to file: {e.args}")
             raise e
