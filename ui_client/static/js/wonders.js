@@ -1,4 +1,4 @@
-//function to use AJAX to get a list of existing threads (conversations) the user may choose from
+//function to fetch a list of existing threads (conversations) the user may choose from
 function get_list_of_threads() {
     let user = 'don';
     let tbodyObj = $('#threads');     // Find table body
@@ -62,7 +62,7 @@ function get_list_of_threads() {
                                 get_list_of_threads();
                             }
                         )
-                        .catch(error => console.error('Fetch Error(delete-thread): ' + error))
+                        .catch(error => console.error('Fetch Error(delete-thread): ' + error));
                 })
                 $('.isSelectedThread').each(function () {
                     $(this).addClass('clickable');
@@ -76,7 +76,7 @@ function get_list_of_threads() {
                 });
             }
         )
-        .catch(error => console.log('Fetch Error(/get-thread-list): ' + error))
+        .catch(error => console.error('Fetch Error(/get-thread-list): ' + error));
 }
 
 function get_list_of_assistants() {
@@ -89,72 +89,72 @@ function get_list_of_assistants() {
     })
         .then(response => response.json())
         .then(data => {
-            if (!Array.isArray(data)) {
-                console.log('NOT DATA.' + data)
-            }
-             // Find the table body
-        let tbodyObj = $('#assistants');
+                if (!Array.isArray(data)) {
+                    console.log('NOT DATA.' + data)
+                }
+                // Find the table body
+                let tbodyObj = $('#assistants');
 
-        // Clear existing rows (if any)
-        tbodyObj.empty();
-        // Loop through the data and append rows,
-        // for each row display a name with link to assistant_processor.
-        // display a delete button that will delete the assistant.
-        data.forEach(function (assistant) {
-            let row = $('<tr class="assistantRow"></tr>');
-            let nameCell = $('<td class="assistantName"></td>').text(assistant.name).addClass('clickable');
-            nameCell.on('click', function () {
-                // You can perform other actions here
-                let prohibitedNames = ['NEW ASSISTANT'];
-                if (assistant.name.trim() == 'NEW ASSISTANT') {
-                    openAssistantPopup(prohibitedNames, function (result) {
-                        addAssistant(result);
+                // Clear existing rows (if any)
+                tbodyObj.empty();
+                // Loop through the data and append rows,
+                // for each row display a name with link to assistant_processor.
+                // display a delete button that will delete the assistant.
+                data.forEach(function (assistant) {
+                    let row = $('<tr class="assistantRow"></tr>');
+                    let nameCell = $('<td class="assistantName"></td>').text(assistant.name).addClass('clickable');
+                    nameCell.on('click', function () {
+                        // You can perform other actions here
+                        let prohibitedNames = ['NEW ASSISTANT'];
+                        if (assistant.name.trim() == 'NEW ASSISTANT') {
+                            openAssistantPopup(prohibitedNames, function (result) {
+                                addAssistant(result);
+                            })
+                        } else {
+                            // alert("USE THREAD" + thread.name);
+                            switchToAssistant(assistant.name, assistant.id);
+                        }
+                    });
+                    let idCell = $('<td class="assistantID isSelected"></td>').text(assistant.id);
+                    let deleteButton = $('<button type="button" class="deleteAssistant btn btn-primary">Delete</button>')
+                    row.append(nameCell, idCell, deleteButton);
+                    tbodyObj.append(row);
+                });
+                $('#assistants').append(tbodyObj.outerHTML)
+                // location.href = location.href;    //cause page to reload
+                $('.deleteAssistant').on('click', function () {
+                    const assistantText = $(this).closest('.assistantRow').find('.assistantID').text();
+                    let data = {
+                        text: assistantText
+                    };
+                    fetch
+                    ('/delete-assistant', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data)
                     })
-                } else {
-                    // alert("USE THREAD" + thread.name);
-                    switchToAssistant(assistant.name, assistant.id);
-                }
-            });
-            let idCell = $('<td class="assistantID isSelected"></td>').text(assistant.id);
-            let deleteButton = $('<button type="button" class="deleteAssistant btn btn-primary">Delete</button>')
-            row.append(nameCell, idCell, deleteButton);
-            tbodyObj.append(row);
-        });
-        $('#assistants').append(tbodyObj.outerHTML)
-        // location.href = location.href;    //cause page to reload
-        $('.deleteAssistant').on('click', function () {
-            const assistantText = $(this).closest('.assistantRow').find('.assistantID').text();
+                        .then(response => response.json())
+                        .then(data => {
+                            get_list_of_assistants();
+                        })
 
-            $.ajax({
-                url: 'delete-assistant',
-                method: 'POST',
-                data: {
-                    text: assistantText
-                },
-                success: function (response) {
-                    get_list_of_assistants();
-                    console.log('Success', response);
-                },
-                error: function (error) {
-                    console.log('Error', error);
-                }
-            })
-        })
-        $('.isSelected').each(function () {
-            $(this).addClass('clickable');
-            $(this).on('click', function () {
-                $('#assistants .assistantID').removeClass('isSelected').removeClass('bg-info');
-                $(this).addClass('isSelected').addClass('bg-info');
-                let asst = $('#chooseRunAssistant')
-                $(asst).find('.assistantID').text($(this).text())
-                $(asst).find('.assistantName').text($(this).parent().find('.assistantName').text())
-            });
-        });
-
-
-
-        })
-        .catch(error => console.error('Fetch Error: ' + error))
+                        .catch(error => console.error('Fetch Error: ' + error));
+                })
+                $('.isSelected').each(function () {
+                    $(this).addClass('clickable');
+                    $(this).on('click', function () {
+                        $('#assistants .assistantID').removeClass('isSelected').removeClass('bg-info');
+                        $(this).addClass('isSelected').addClass('bg-info');
+                        let asst = $('#chooseRunAssistant')
+                        $(asst).find('.assistantID').text($(this).text())
+                        $(asst).find('.assistantName').text($(this).parent().find('.assistantName').text())
+                    });
+                });
+            }
+        )
+        .catch(error => console.error('Fetch Error: ' + error));
 }
 
 //Update screen with current thread and assistant lists
@@ -162,39 +162,44 @@ get_list_of_threads();
 get_list_of_assistants();
 
 function addThread(jsonData, user) {
-    $.ajax({
-        url: '/add-new-thread/' + user,
-        type: 'POST',
-        dataType: 'json',
-        data: JSON.stringify((jsonData)),
-        success: function (data) {
-            // alert('Thread Added' + data)
-            get_list_of_threads()
+    console.log('JSONDATA:' + jsonData)
+    fetch('/add-new-thread/' + user, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            dataType: 'json'
         },
-        error: function (xhr, status, error) {
-            console.error("Error adding thread:", error);
-        },
-    });
-
+        body: JSON.stringify((jsonData))
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (!Array.isArray(data)) {
+                console.log('NOT DATA.' + data)
+            }
+            get_list_of_threads();
+        })
+        .catch(error => console.error('Fetch Error: ' + error))
 }
 
 function addAssistant(jsonData) {
-    $.ajax({
-        url: '/add-new-assistant/',
-        type: 'POST',
-        dataType: 'json',
-        data: JSON.stringify((jsonData)),
-        success: function (data) {
-            // alert('Assistant Added' + data)
-            get_list_of_assistants()
+    fetch('/add-new-assistant/', {
+        method: 'POST',
+        headers: {
+            dataType: 'json'
         },
-        error: function (xhr, status, error) {
-            console.error("Error adding thread:", error);
-        },
-    });
+        body: JSON.stringify((jsonData))
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (!Array.isArray(data)) {
+                console.log('NOT DATA.' + data)
+            }
+            get_list_of_assistants();
+        })
+        .catch(error => console.error('Fetch Error: ' + error))
 }
 
-//Swtich user page to query_processor
+//Switch user page to query_processor
 function switchToQuery(name, assistant, user) {
     let data = {
         name: name,
@@ -217,10 +222,10 @@ function switchToQuery(name, assistant, user) {
                 window.location.href = url;
             }
         )
-        .catch(error => console.error('Fetch Error: ' + error))
+        .catch(error => console.error('Fetch Error: ' + error));
 }
 
-//Swtich user page to assistant manager page
+//Switch user page to assistant manager page
 function switchToAssistant(name, id) {
     let data = {name: name, id: id}
     fetch('/switch-to-assistant/', {
@@ -243,7 +248,7 @@ function switchToAssistant(name, id) {
                 .join('&')
             window.location.href = data['redirectUrl'] + "?" + queryString;
         })
-        .catch(error => console.error('Fetch Error: ' + error))
+        .catch(error => console.error('Fetch Error: ' + error));
 
 }
 
