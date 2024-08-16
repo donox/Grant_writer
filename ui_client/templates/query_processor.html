@@ -4,9 +4,20 @@
 
 {% block content %}
 
+<!-- pop-up to find file -->
+<button id="open-file-browser">Open File Browser</button>
+<div id="file-browser">
+    <h2>File Browser</h2>
+    <p id="current-directory"></p>
+    <ul id="file-list"></ul>
+    <button id="close-file-browser">Close</button>
+</div>
+<!-- end pop-up -->
+
 <div class="row">
     <button type="button" class="query btn btn-primary">Run Query</button>
 </div>
+<div id="queryTree"></div>
 <div id="thread1" class="container">
     <div class="row result">
         <div class="col-9">
@@ -38,6 +49,8 @@
         const user = urlParams.get('user');
         const threadName = urlParams.get('name');
         const assistant = urlParams.get('assistant');
+
+        let currentDirectory = '/';
 
         // Adjust height on input event for each textarea
         $('.expandingTextarea').each(function () {
@@ -77,37 +90,53 @@
                         if (!Array.isArray(data)) {
                             console.log('NOT DATA.' + data)
                         }
-                        data.forEach(function (item, index) {
-                            // Clone the result row
-                            let newRow = base.clone(true);
+                        // remove entries from prior render
+                        $('.added').remove()
 
-                            // Update the textarea ID
-                            let newTextareaId = 'BaseQuery' + (index + 1);
-                            newRow.find('edit-content').attr('id', newTextareaId);
-                            base.after(newRow);
-                            newRow.find('.messageId').text(item.message_id);
-                            newRow.find('.messageRole').text(item.role);
-                            newRow.find('.messageThread').text(item.thread);
-                            newRow.find('.edit-content').val(item.content);
-                            newRow.find('.msg_update').on('click', function () {
-                                alert('Pushed update');
-                                updateMessage(item.message_id, item.role, threadName, item.content);
-                            });
-                            adjustHeight(newRow.find('.edit-content')[0]);
-                            let colorClass = 'bg-success';
-                            if (item.role == 'user') {
-                                colorClass = 'userRoleCSS';
-                            }
-                            if (item.role == 'assistant') {
-                                colorClass = 'assistantRoleCSS';
-                            }
-                            newRow.contents().find('textarea').removeClass('bg-primary-subtle').addClass(colorClass);
-                            newRow.contents().find('textarea').removeClass('bg-primary-subtle').addClass(colorClass);
+                        data.forEach(function (item, index) {
+                            makeResponse(base, item, 'BaseQuery', index)
                         })
+                        // loadJsTree('queryTree', data);
+                        // layoutTree('queryTree', data);
                     })
-                   .catch(error => console.error('Fetch Error: ' + error))
+
+                    .catch(error => console.error('Fetch Error: ' + error))
             });
         };
+
+        let makeResponse = function (base, item, baseId, index) {
+            // Clone the result row
+            let newRow = base.clone(true);
+            newRow.addClass('added');
+            base.after(newRow);
+            let newTextareaId = baseId + (index + 1);
+            newRow.find('edit-content').attr('id', newTextareaId);
+            newRow.find('.messageId').text(item.id);
+            newRow.find('.messageRole').text(item.datums.role);
+            newRow.find('.messageThread').text(item.thread);
+            newRow.find('.edit-content').val(item.datums.content);
+            newRow.find('.msg_update').on('click', function () {
+                alert('Pushed update');
+                updateMessage(item.message_id, item.datums.role, threadName, item.datums.content);
+            });
+            adjustHeight(newRow.find('.edit-content')[0]);
+            let colorClass = 'bg-success';
+            if (item.datums.role == 'user') {
+                colorClass = 'userRoleCSS';
+            }
+            if (item.datums.role == 'assistant') {
+                colorClass = 'assistantRoleCSS';
+            }
+            newRow.contents().find('textarea').removeClass('bg-primary-subtle').addClass(colorClass);
+            newRow.contents().find('textarea').removeClass('bg-primary-subtle').addClass(colorClass);
+
+            // Recurse to handle children of query
+            $.each(item.children, function (childIndex, value) {
+                console.log("Child: " + childIndex + " : " + value)
+                makeResponse(newRow, value, newTextareaId + 'C', childIndex)
+            });
+        }
+
         load_query_editor();
 
         let updateMessage = function (message_id, role, threadName, content) {
@@ -129,6 +158,56 @@
                 },
             })
         };
+
+        // manage file browser
+        $('#open-file-browser').click(function () {
+            $('#file-browser').show();
+            updateFileBrowser(currentDirectory);
+        });
+
+        $('#close-file-browser').click(function () {
+            $('#file-browser').hide();
+        });
+
+        $('#file-list').on('click', '.directory', function (e) {
+            e.preventDefault();
+            updateFileBrowser($(this).data('path'));
+        });
+
+        $('#file-list').on('click', '.file', function (e) {
+            e.preventDefault();
+            alert('Selected file: ' + $(this).data('path'));
+            attach_file($(this).data('path'))
+            $('#file-browser').hide();
+        });
+
+        let attach_file = function (file_path) {
+            let data = {
+                path: file_path,
+                thread: threadName,
+                user: user,
+                id: assistant,
+            }
+            // console.log(content)
+
+            fetch('/attach-file', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (!Array.isArray(data)) {
+                        console.log('NOT DATA.' + data)
+                    }
+                    // Need to show attached files here
+                    console.log("File: " + file_path + " attached.")
+                })
+
+                .catch(error => console.error('Fetch Error: ' + error))
+        }
 
     });
 </script>

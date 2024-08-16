@@ -5,6 +5,7 @@ from logging.handlers import RotatingFileHandler
 import ui_client.routes.start as start
 import ui_client.routes.messages as message
 import ui_client.routes.assistant_page as assist
+import ui_client.routes.vs_page as vector
 from ui_control.command_processor import Commands
 from ui_control.client_interface import ClientInterface
 
@@ -20,6 +21,7 @@ def create_app(secret_key, client_interface, assistant):
     app.register_blueprint(start.bp)
     app.register_blueprint(message.msg)
     app.register_blueprint(assist.ap)
+    app.register_blueprint(vector.vect)
 
     # Create a file handler
     file_handler = RotatingFileHandler('flask.log', maxBytes=10240, backupCount=10)

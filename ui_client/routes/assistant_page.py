@@ -1,8 +1,42 @@
 import config
 from flask import render_template, request, redirect, url_for, flash, Blueprint, jsonify, current_app
 import json
+from ui_client.routes.start import client_interface
 
-ap = Blueprint("assistant_page", __name__)
+ap = Blueprint("assistant", __name__)
+
+
+# refactoring of assistant
+@ap.route('/assistant-manager-template')
+def assistant_manager_template():
+    return render_template('assistant_manager.html')
+
+
+@ap.route('/update-assistant/<assistant_id>', methods=['POST'])
+def update_assistant(assistant_id):
+    from ui_client.routes.start import run_setup  # import here to avoid circular import
+    ci = current_app.config['CLIENT_INTERFACE']
+    run_setup(ci)
+
+    data = request.json
+    success = ci.cmd_update_assistant(assistant_id, data)
+    return jsonify({"success": success})
+
+
+@ap.route('/get-assistant-details/<assistant_id>', methods=['GET'])
+def get_assistant_details(assistant_id):
+    from ui_client.routes.start import run_setup  # import here to avoid circular import
+    ci = current_app.config['CLIENT_INTERFACE']
+    run_setup(ci)
+
+    assistant = ci.cmd_get_assistant_from_id(assistant_id)
+    if assistant:
+        return jsonify(assistant.get_content_data())
+    else:
+        return jsonify({"error": "Assistant not found"}), 404
+
+
+# end refactoring
 
 
 @ap.route("/assistant-processor")
@@ -47,3 +81,43 @@ def update_instructions():
         except Exception as e:
             print(f"Fail in updating instructions: {e.args}")
             return jsonify(failure=f"Failed to update instructions for {assistant_id}")
+
+
+@ap.route("/attach-file", methods=['POST'])
+def attach_file():
+    from ui_client.routes.start import run_setup  # import here to avoid circular import
+    ci = current_app.config['CLIENT_INTERFACE']
+    run_setup(ci)
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.data)
+            assistant_id = data["id"]
+            file_path = data["path"]
+            result = ci.cmd_attach_file(assistant_id, file_path)
+            if result:
+                return jsonify(success="Attached " + file_path + " to " + assistant_id)
+            else:
+                return jsonify(failure="Attach failed " + assistant_id)
+        except Exception as e:
+            print(f"Fail in attaching file: {e.args}")
+            return jsonify(failure=f"Failed to attach file for {assistant_id}")
+
+
+@ap.route('/delete-assistant/<assistant_id>', methods=['DELETE'])
+def delete_assistant(assistant_id):
+    ci = client_interface()
+    result = ci.cmd_delete_assistant(assistant_id)
+    return jsonify({'success': result})
+
+#
+# @bp.route('/delete-assistant', methods=['POST'])
+# def delete_assistant():
+#     ci = client_interface()
+#     if request.method == 'POST':
+#         data = json.loads(request.data)
+#         assistant_id = data['text']
+#         result = ci.cmd_delete_assistant(assistant_id)
+#         if result:
+#             return jsonify(success=True)
+#         else:
+#             return jsonify(success=f"Failed to delete assistant {assistant_id}")

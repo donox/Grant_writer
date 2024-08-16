@@ -28,6 +28,18 @@
     </table>
 </div>
 
+<div id="storeContainer" class="container">
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Id</th>
+        </tr>
+        </thead>
+        <tbody id="stores"></tbody>
+    </table>
+</div>
+
 <div>
     <div>Run Choices</div>
     <div id="chooseRunAssistant" class="row">
@@ -50,6 +62,8 @@
 
 <div id="popupAssistantOverlay"></div>
 
+<div id="popupStoreOverlay"></div>
+
 <div id="popupThreadForm">
     <label for="threadNameInput">Name:</label>
     <input type="text" id="threadNameInput"><br><br>
@@ -64,6 +78,13 @@
     <input type="text" id="assistantNameInput"><br><br>
     <button id="assistantSubmitBtn">Submit</button>
     <button id="assistantCloseBtn">Close</button>
+</div>
+
+<div id="popupStoreForm">
+    <label for="assistantNameInput">Name:</label>
+    <input type="text" id="storeNameInput"><br><br>
+    <button id="storeSubmitBtn">Submit</button>
+    <button id="storeCloseBtn">Close</button>
 </div>
 
 

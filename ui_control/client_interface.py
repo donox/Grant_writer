@@ -9,6 +9,10 @@ class ClientInterface(object):
         self.command_processor.cmd_setup({})
         foo = 3
 
+    def cmd_make_thread_json(self, thread_name):
+        result = self.command_processor.cmd_make_thread_json(thread_name)
+        return result
+
     def cmd_add_user_message(self, message, thread_name, assistant):
         cmd = {"command": "add_message", "content": message, "role": "user", "thread_name": thread_name,
                "assistant": assistant}
@@ -49,16 +53,35 @@ class ClientInterface(object):
         return result
 
     def cmd_get_assistant_list(self):
-        print('CALLED')
         result = self.command_processor.cmd_get_assistant_list()
+        return result
+
+    def cmd_get_assistant_from_id(self, assistant_id):
+        result = self.command_processor.cmd_get_assistant_from_id(assistant_id)
+        return result
+
+    def cmd_update_assistant(self, assistant_id, data):
+        result = self.command_processor.cmd_update_assistant(assistant_id, data)
         return result
 
     def cmd_add_new_assistant(self, data):
         result = self.command_processor.cmd_add_new_assistant(data)
         return result
 
+    def cmd_get_vector_store_list(self):
+        result = self.command_processor.cmd_get_vector_store_list()
+        return result
+
+    def cmd_add_new_vector_store(self, data):
+        result = self.command_processor.cmd_add_new_vector_store(data)
+        return result
+
     def cmd_get_assistant_data(self, assistant_id):
         result = self.command_processor.cmd_get_assistant_data(assistant_id)
+        return result
+    
+    def cmd_get_store_data(self, store_id):
+        result = self.command_processor.cmd_get_store_data(store_id)
         return result
     
     def cmd_create_run(self, user,  name, assistant_id):
@@ -76,7 +99,15 @@ class ClientInterface(object):
     def cmd_delete_assistant(self, assistant_id):
         result = self.command_processor.cmd_delete_assistant(assistant_id)
         return result
+    
+    def cmd_delete_store(self, store_id):
+        result = self.command_processor.cmd_delete_store(store_id)
+        return result
 
     def cmd_update_assistant_instructions(self, assistant_id, instructions):
         result = self.command_processor.cmd_update_assistant_instructions(assistant_id, instructions)
+        return result
+
+    def cmd_attach_file(self, assistant_id, file_path):
+        result = self.command_processor.cmd_attach_file(assistant_id, file_path)
         return result

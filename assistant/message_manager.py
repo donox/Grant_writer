@@ -1,17 +1,33 @@
-
-
 class Message(object):
     def __init__(self, grant_builder, thread):
         self.grant_builder = grant_builder
-        self.thread = thread    # thread is the thread controller (user level), not oaithread
+        self.thread = thread  # thread is the thread controller (user level), not oaithread
         self.oai_message = None
         self.message_id = None
         self.content = None
         self.role = None
         self.attachments = []
         self.files = []
-        self.responses = []                 # WHY IS THIS NEEDED - never created
-        self.end_query_message = False      # Set to true on the most recent (last) message on any query (run)
+        self.responses = []  # WHY IS THIS NEEDED - never created
+        self.end_query_message = False  # Set to true on the most recent (last) message on any query (run)
+        self.json = None
+
+    def make_message_json(self):
+        res = {
+            "id": "msg_" + self.message_id,
+            "text": self.content[0:30],
+            "state": {
+                "opened": True,
+                "selected": False
+            },
+            "datums": {
+                "role": self.role,
+                "content": self.content,
+            },
+            "children": [],
+        }
+        self.json = res
+        return res
 
     def add_content_and_create_message_in_thread(self, content, role):
         # Need to add any file attachments before calling this method
@@ -41,7 +57,7 @@ class Message(object):
         #         response += content_text + "\n\n"
         return response
 
-    def add_response(self, msg):          # THIS IS NEVER CALLED - What is the idea of multiple responses for a message
+    def add_response(self, msg):  # THIS IS NEVER CALLED - What is the idea of multiple responses for a message
         self.responses.append(msg)
 
     def get_oai_message(self):
@@ -78,12 +94,12 @@ class Message(object):
         return self.role
 
     def get_content(self):
+        if not self.content:
+            return ' '
         return self.content
 
-    def get_content_dict(self):             # Note Message does not know thread used to create it
+    def get_content_dict(self):  # Note Message does not know thread used to create it
         result = {'role': self.role,
                   'content': self.content,
                   'message_id': self.message_id}
         return result
-
-

@@ -2,6 +2,69 @@ from openai import OpenAI
 
 
 class VectorStoreManager(object):
+    def __init__(self, client):
+        self.client = client
+        self.vector_store_list = []
+        self.update_existing_vector_stores()
+
+    def update_existing_vector_stores(self):
+        vs_list = self.client.beta.vector_stores.list()
+        known_vs_id_list = [x.get_vector_store_id() for x in self.vector_store_list]
+        for vs in vs_list:
+            if vs.id not in known_vs_id_list:
+                mgr = VectorStore(self.client, vs.name, vs_id=vs.id)
+                self.vector_store_list.append(mgr)
+
+    def get_vector_store_by_id(self, store_id):
+        result = None
+        for vs in self.vector_store_list:
+            if vs.get_vector_store_id() == store_id:
+                result = vs
+                break
+        return result
+
+    def get_vector_store_by_name(self, store_name):
+        result = None
+        for vs in self.vector_store_list():
+            if vs.get_vector_store_name() == store_name:
+                result = vs
+                break
+        return result
+
+    def get_vector_stores(self):
+        return self.vector_store_list
+
+    def get_vector_stores_as_list_of_dictionaries(self):
+        result = []
+        for vector_store in self.get_vector_stores():
+            result.append({"name": vector_store.get_vector_store_name(),
+                           "id": vector_store.get_vector_store_id()})
+        return result
+
+    def add_new_vector_store(self, name):
+        new_vs = VectorStore(self.client, name)
+        self.vector_store_list.append(new_vs)
+
+    def delete_store(self, store_id):
+        this_store = None
+        for x in self.vector_store_list:
+            if x.get_vector_store_id() == store_id:
+                this_store = x
+        if not this_store:
+            print(f"store {store_id} was not found getting error")
+            return False
+        try:
+            result = self.client.beta.vector_stores.delete(this_store.get_vector_store_id())
+        except Exception as e:  # openAI - NotFoundError
+            print(f"store {store_id} was not found getting error {e.args}")
+            return False
+        if result.deleted:
+            self.vector_store_list.remove(this_store)
+            this_store = None
+        return result.deleted  # True/False
+
+
+class VectorStore(object):
     def __init__(self, client, name, vs_id=None):
         self.client = client
         self.vector_store_id = vs_id
@@ -31,6 +94,19 @@ class VectorStoreManager(object):
 
     def get_vector_store_id(self):
         return self.vector_store_id
+
+    def delete_store(self, store_id):
+        pass
+
+    def get_vector_store_name(self):
+        return self.store_name
+
+    def get_content_data(self):
+        res = {"name": self.store_name,
+               "id": self.vector_store_id,
+               }
+        return res
+
 
 def get_known_vector_stores():
     store_list = OpenAI.beta.vector_stores.list()

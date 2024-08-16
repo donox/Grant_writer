@@ -1,12 +1,13 @@
 from openai import OpenAI
 from openai import AssistantEventHandler
 from typing_extensions import override
+from pathlib import Path
 
 
 class AssistantManager(object):
     def __init__(self, grant_builder):
         self.grant_builder = grant_builder
-        self.client = self.grant_builder.get_client()   # OAI c
+        self.client = self.grant_builder.get_client()  # OAI c
         self.known_assistants = []
 
     def create_assistant(self, name):
@@ -48,13 +49,13 @@ class AssistantManager(object):
             return False
         try:
             result = self.client.beta.assistants.delete(this_assistant.get_id())
-        except Exception as e:     # openAI - NotFoundError
+        except Exception as e:  # openAI - NotFoundError
             print(f"Assistant {assistant_id} was not found getting error {e.args}")
             return False
         if result.deleted:
             self.known_assistants.remove(this_assistant)
             this_assistant = None
-        return result.deleted               # True/False
+        return result.deleted  # True/False
 
 
 class Assistant(object):
@@ -63,7 +64,8 @@ class Assistant(object):
         self.name = name
         self.assistant = None
         self.id = assistant_id
-        self.vector_stores = []   # List of vector_store_managers
+        self.vector_stores = []  # List of vector_store_managers
+        self.uploaded_files = []
 
         if self.id:
             try:
@@ -143,6 +145,30 @@ class Assistant(object):
                 event_handler=EventHandler(output_mgr),
         ) as stream:
             stream.until_done()
+
+    def attach_file(self, path):
+        # Attach file to current assistant.
+        with open(path, 'rb') as upload_file:
+            try:
+                file = self.client.files.create(
+                    file=upload_file,
+                    purpose="assistants",
+                )
+                file_id = file.id
+                # APPARENTLY NEED TO USE VECTOR STORE.  CAN'T ADD FILES JUST TO THE ASSISTANT (ANYMORE?)
+                # https://community.openai.com/t/confusion-with-the-vector-storage-option-when-searching-for-files/721083
+                response = self.client.beta.assistants.update(
+                    assistant_id=self.id,
+                    tools=[
+                        {"type": "file_search",
+                         "file_id": file_id}
+                    ],
+                    model="gpt-4o"
+                )
+                self.uploaded_files.append(path)   #openAI file object
+            except Exception as e:
+                return False
+        return True
 
 
 class EventHandler(AssistantEventHandler):

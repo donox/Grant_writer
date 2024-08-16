@@ -29,11 +29,16 @@ class Commands(object):
                                    "cmd_create_run": self.cmd_create_run,
                                    "cmd_add_message": self.cmd_add_message,
                                    "cmd_delete_thread": self.cmd_delete_thread,
+                                   "cmd_delete_store": self.cmd_delete_store,
+                                   "cmd_delete_assistant": self.cmd_delete_assistant,
                                    'cmd_update_message': self.cmd_update_message,
                                    'cmd_get_assistant_list': self.cmd_get_assistant_list,
                                    'cmd_add_new_assistant': self.cmd_add_new_assistant,
                                    'cmd_get_assistant_data': self.cmd_get_assistant_data,
+                                   'cmd_get_store_data': self.cmd_get_store_data,
                                    'cmd_update_assistant_instructions': self.cmd_update_assistant_instructions,
+                                   'cmd_make_thread_json': self.cmd_make_thread_json,
+                                   'cmd_get_assistant_from_id': self.cmd_get_assistant_from_id,
                                    }
         self.grant_builder = None
         self.assistant_manager = None
@@ -80,27 +85,30 @@ class Commands(object):
 
     def cmd_setup(self, cmd_dict):
         self.output_manager = PrintAndSave(self.results_path, True)
-
-        self.vector_store_id = self.config['keys']['vectorStore']
-        self.assistant_id = self.config['keys']['assistant']         # !!!!!!!!!!!!!!!!!!!!!!!!!!!
+        # self.vector_store_id = self.config['keys']['vectorStore']
+        # self.assistant_id = self.config['keys']['assistant']         # !!!!!!!!!!!!!!!!!!!!!!!!!!!
         self.api_key = self.config['keys']['openAIKey']
         self.thread_path = self.config['paths']['threadList']     # We have to keep a list of known threads ourselves
         self.thread_manager = ThreadManager(self.thread_path)
-        self.grant_builder = GrantWriter(self.api_key, self.output_manager, self.thread_manager, self.assistant_id, self.vector_store_id)
+        self.grant_builder = GrantWriter(self.api_key, self.output_manager, self.thread_manager)
         self.assistant_manager = AssistantManager(self.grant_builder)
         self.assistant_manager.retrieve_existing_assistants()
         self.grant_builder.set_assistant_manager(self.assistant_manager)
         self.thread_manager.set_grant_builder(self.grant_builder)
         self.client = self.grant_builder.get_client()
+        self.vector_store_manager = VectorStoreManager(self.client)
 
-
-        # this will look up an existing VS if given an id
-        # TODO: there my be multiple vector stores
-        self.vector_store_manager = self.grant_builder.create_vector_store("VS1",
-                                                                           vector_store_id=self.vector_store_id)
+    def cmd_make_thread_json(self, thread_name):
+        thread = self.thread_manager.get_known_thread_entry_from_name(thread_name)
+        result = thread.make_thread_jstree_json()
+        return result
 
     def cmd_get_user_threads(self, user):
         result = self.thread_manager.get_threads_for_user(user)
+        return result
+
+    def cmd_get_assistant_from_id(self, assistant_id):
+        result = self.assistant_manager.get_assistant_from_id(assistant_id)
         return result
 
     def cmd_update_assistant(self, cmd_dict):
@@ -151,9 +159,26 @@ class Commands(object):
         self.assistant_manager.retrieve_existing_assistants()
         return result
 
+    def cmd_get_vector_store_list(self):
+        result = self.vector_store_manager.get_vector_stores_as_list_of_dictionaries()
+        return result
+
+    def cmd_add_new_vector_store(self, data):
+        result = self.vector_store_manager.add_new_vector_store(data['name'])
+        self.vector_store_manager.update_existing_vector_stores()
+        return result
+
     def cmd_get_assistant_data(self, assistant_id):
         result = self.assistant_manager.get_assistant_data(assistant_id)
         return result
+    
+    def cmd_get_store_data(self, store_id):
+        vs = self.vector_store_manager.get_vector_store_by_id(store_id)
+        if vs:
+            result = vs.get_content_data()
+            return result
+        else:
+            return None
 
     def cmd_create_run(self, user, name, assistant_id):           # IS THIS RIGHT, Can it be deleted?
         result = self.grant_builder.create_run(user, name, assistant_id)
@@ -197,10 +222,18 @@ class Commands(object):
     def cmd_delete_assistant(self, assistant_id):
         result = self.assistant_manager.delete_assistant(assistant_id)
         return result
+    
+    def cmd_delete_store(self, store_id):
+        result = self.vector_store_manager.delete_store(store_id)
+        return result
 
     def cmd_update_assistant_instructions(self, assistant_id, instructions):
         assistant = self.assistant_manager.get_assistant_from_id(assistant_id)
         result = assistant.update_assistant(instructions=instructions)
         return result
 
+    def cmd_attach_file(self, assistant_id, file_path):
+        assistant = self.assistant_manager.get_assistant_from_id(assistant_id)
+        result = assistant.attach_file(path=file_path)
+        return result
 

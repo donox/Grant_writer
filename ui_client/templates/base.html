@@ -13,21 +13,22 @@
     ;
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <a class="navbar-brand" href="{{ url_for('start.index') }}"> Wonders and Worries </a>
-    <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav">
-            <li class="nav-item">
-                <a class="nav-link" href{{ url_for('start.index') }}">Home</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('start.index') }}">Conversations</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('start.index') }}">Stores</a>
-            </li>
-        </ul>
-    </div>
+<nav class="navbar navbar-expand navbar-light bg-light">
+    <a class="navbar-brand" href="{{ url_for('start.index') }}">Wonders and Worries</a>
+    <ul class="navbar-nav">
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('start.index') }}">All Elements</a>
+        </li>
+                <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('assistant.assistant_processor') }}">Assistants</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('start.index') }}">Conversations</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('vector.vector_store_processor') }}">Stores</a>
+        </li>
+    </ul>
 </nav>
 <!-- Flashed messages -->
 <div class="container mt-2">
@@ -42,12 +43,15 @@
 <div> {% block content %}{% endblock %}</div>
 <div id="jstree"></div>
 
-
-<!-- <script src="{{ url_for('static', filename='js/jstree.min.js') }}"></script>   -->
+<script src="{{ url_for('static', filename='js/jstree.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/file_selector.js') }}"></script>
 <style src="{{ url_for('static', filename='style.css') }}"></style>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-te/1.4.0/jquery-te.min.js"></script>
+<script src="{{ url_for('static', filename='js/tree.js') }}"></script>
 <script src="{{ url_for('static', filename='js/wonders.js') }}"></script>
+
+
 </body>
 </html>

@@ -64,6 +64,14 @@ def get_assistant_list():
     result.insert(0, {'name': 'NEW ASSISTANT', 'id': '-----'})
     return jsonify(result)
 
+@bp.route('/get-store-list/', methods=['GET'])
+def get_store_list():
+    ci = client_interface()
+    run_setup(ci)
+    result = ci.cmd_get_vector_store_list()
+    result.insert(0, {'name': 'NEW VECTOR STORE', 'id': '-----'})
+    return jsonify(result)
+
 
 @bp.route('/add-new-thread/<user>', methods=['POST'])
 def add_new_thread(user):
@@ -93,6 +101,20 @@ def add_new_assistant():
             print(f"Error decoding json from add thread: {e}")
             return render_template('index.html')
         result = ci.cmd_add_new_assistant(data)
+        foo = 3
+        return render_template('index.html')  # This a reasonable thing to do????
+
+@bp.route('/add-new-store/', methods=['POST'])
+def add_new_store():
+    ci = client_interface()
+    run_setup(ci)
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.data)
+        except Exception as e:
+            print(f"Error decoding json from add thread: {e}")
+            return render_template('index.html')
+        result = ci.cmd_add_new_vector_store(data)
         foo = 3
         return render_template('index.html')  # This a reasonable thing to do????
 
@@ -152,17 +174,19 @@ def delete_thread():
             return jsonify(failure=f"Failed to delete {threadName}")
 
 
-@bp.route('/delete-assistant', methods=['POST'])
-def delete_assistant():
+
+        
+@bp.route('/delete-store', methods=['POST'])
+def delete_store():
     ci = client_interface()
     if request.method == 'POST':
         data = json.loads(request.data)
-        assistant_id = data['text']
-        result = ci.cmd_delete_assistant(assistant_id)
+        store_id = data['text']
+        result = ci.cmd_delete_store(store_id)
         if result:
             return jsonify(success=True)
         else:
-            return jsonify(success=f"Failed to delete assistant {assistant_id}")
+            return jsonify(success=f"Failed to delete store {store_id}")
 
 # @bp.route('/add', methods=['GET', 'POST'])
 # def add_message():

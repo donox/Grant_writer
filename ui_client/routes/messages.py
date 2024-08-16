@@ -1,4 +1,5 @@
 import json
+import os
 
 from flask import render_template, request, redirect, url_for, flash, Blueprint, jsonify, current_app
 from urllib.parse import unquote
@@ -42,27 +43,27 @@ def run_query():
         user = data['user']
         thread_name = data['thread']
         assistant_id = data['assistant']
-        # if 'urlencoded' in request.content_type:
-        #     msg_text = unquote(msg_text)
-        # else:
-        #     print(f"/query content has content type: {request.content_type}")  # Probably will need json at a min
         if not msg_text:
             flash("Message text mst be non-empty", "fail")
-            return jsonify("failure")
+            return jsonify(failure=True)
 
         # If the user update an existing message (nothing new is added).  If the user updated an assistant response
         # message, it becomes a user message (??). [should it be moved/duplicated to the end of the convesation?]
         ci.cmd_add_user_message(msg_text, thread_name, assistant_id)
         ci.cmd_process_query(user, thread_name, assistant_id)      # user, name, assistant_id
-
-        results = ci.cmd_get_last_results(user, thread_name, assistant_id)   # List of Messages
+        results = ci.cmd_make_thread_json(thread_name)
+        # results = ci.cmd_get_last_results(user, thread_name, assistant_id)   # List of Messages
         result_list = []
         for result in results:
-            rslt = result.get_content_dict()
-            rslt['thread'] = thread_name
-            result_list.append(rslt)
+            result['thread'] = thread_name
+            result_list.append(result)
 
-        return jsonify(result_list)
+        j_list = jsonify(result_list)
+        # with open('/home/don/PycharmProjects/grant_assistant/query.txt', 'w') as outfile:
+        #     sss = json.dumps(result_list, indent=2)
+        #     outfile.write(sss)
+        #     outfile.close()
+        return j_list
     else:
         raise RuntimeError("Failure on /query POST")      # NEED TO CONTINUE EXECUTION
 
@@ -87,3 +88,23 @@ def save():
     # text_content = request.form['editor']
     # contents[current_index] = text_content
     return jsonify(success=True)
+
+# code to handle directory traversal
+@msg.route('/get_files', methods=['POST'])
+def get_files():
+    directory = request.json['directory']
+    files = []
+    directories = []
+
+    for item in os.listdir(directory):
+        full_path = os.path.join(directory, item)
+        if os.path.isfile(full_path):
+            files.append(item)
+        elif os.path.isdir(full_path):
+            directories.append(item)
+
+    return jsonify({
+        'files': files,
+        'directories': directories,
+        'current_directory': directory
+    })
