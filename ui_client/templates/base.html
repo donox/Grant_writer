@@ -19,7 +19,7 @@
         <li class="nav-item">
             <a class="nav-link" href="{{ url_for('start.index') }}">All Elements</a>
         </li>
-                <li class="nav-item">
+        <li id="assistantManagerMenuItem"  class="nav-item">
             <a class="nav-link" href="{{ url_for('assistant.assistant_processor') }}">Assistants</a>
         </li>
         <li class="nav-item">
@@ -50,7 +50,15 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-te/1.4.0/jquery-te.min.js"></script>
 <script src="{{ url_for('static', filename='js/tree.js') }}"></script>
+
+<script src="{{ url_for('static', filename='js/config.js') }}"></script>
 <script src="{{ url_for('static', filename='js/wonders.js') }}"></script>
+<script src="{{ url_for('static', filename='js/page_config.js') }}"></script>
+<script src="{{ url_for('static', filename='js/init.js') }}"></script>
+
+
+<!-- Add other artifact-specific scripts here -->
+<script src="{{ url_for('static', filename='js/assistants.js') }}"></script>
 
 
 </body>

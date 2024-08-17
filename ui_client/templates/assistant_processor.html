@@ -89,6 +89,7 @@
     $(document).ready(function() {
     // Event listener for the Assistant Manager menu item
     $('#assistantManagerMenuItem').on('click', function() {
+        console.log('Click assistantManagerMenuItem');
         $('#mainContent').load('/assistant-manager-template', function() {
             initializeAssistantManager();
         });
@@ -113,66 +114,66 @@
         });
     }
 
-    function loadAssistantDetails(assistantId) {
-        fetch(`/get-assistant-details/${assistantId}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        })
-        .then(response => response.json())
-        .then(data => {
-            displayAssistantDetails(data);
-        })
-        .catch(error => console.error('Error loading assistant details:', error));
-    }
-
-    function displayAssistantDetails(assistant) {
-        $('#assistantName').text(assistant.name);
-        $('#assistantId').text(assistant.id);
-        $('#assistantInstructions').val(assistant.instructions);
-        // Add more fields as necessary
-
-        // Show the assistant details section
-        $('#assistantDetails').show();
-    }
-
-    function clearAssistantDetails() {
-        $('#assistantName').text('');
-        $('#assistantId').text('');
-        $('#assistantInstructions').val('');
-        // Clear more fields as necessary
-
-        // Hide the assistant details section
-        $('#assistantDetails').hide();
-    }
-
-    function updateAssistantDetails() {
-        let assistantId = $('#assistantId').text();
-        let updatedData = {
-            name: $('#assistantName').text(),
-            instructions: $('#assistantInstructions').val(),
-            // Add more fields as necessary
-        };
-
-        fetch(`/update-assistant/${assistantId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(updatedData)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Assistant updated successfully');
-                get_list_of_assistants(); // Refresh the list
-            } else {
-                alert('Failed to update assistant');
-            }
-        })
-        .catch(error => console.error('Error updating assistant:', error));
-    }
+    // function loadAssistantDetails(assistantId) {
+    //     fetch(`/get-assistant-details/${assistantId}`, {
+    //         method: 'GET',
+    //         headers: {
+    //             'Content-Type': 'application/json',
+    //         },
+    //     })
+    //     .then(response => response.json())
+    //     .then(data => {
+    //         displayAssistantDetails(data);
+    //     })
+    //     .catch(error => console.error('Error loading assistant details:', error));
+    // }
+    //
+    // function displayAssistantDetails(assistant) {
+    //     $('#assistantName').text(assistant.name);
+    //     $('#assistantId').text(assistant.id);
+    //     $('#assistantInstructions').val(assistant.instructions);
+    //     // Add more fields as necessary
+    //
+    //     // Show the assistant details section
+    //     $('#assistantDetails').show();
+    // }
+    //
+    // function clearAssistantDetails() {
+    //     $('#assistantName').text('');
+    //     $('#assistantId').text('');
+    //     $('#assistantInstructions').val('');
+    //     // Clear more fields as necessary
+    //
+    //     // Hide the assistant details section
+    //     $('#assistantDetails').hide();
+    // }
+    //
+    // function updateAssistantDetails() {
+    //     let assistantId = $('#assistantId').text();
+    //     let updatedData = {
+    //         name: $('#assistantName').text(),
+    //         instructions: $('#assistantInstructions').val(),
+    //         // Add more fields as necessary
+    //     };
+    //
+    //     fetch(`/update-assistant/${assistantId}`, {
+    //         method: 'POST',
+    //         headers: {
+    //             'Content-Type': 'application/json',
+    //         },
+    //         body: JSON.stringify(updatedData)
+    //     })
+    //     .then(response => response.json())
+    //     .then(data => {
+    //         if (data.success) {
+    //             alert('Assistant updated successfully');
+    //             get_list_of_assistants(); // Refresh the list
+    //         } else {
+    //             alert('Failed to update assistant');
+    //         }
+    //     })
+    //     .catch(error => console.error('Error updating assistant:', error));
+    // }
 });
 </script>
 

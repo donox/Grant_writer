@@ -99,10 +99,16 @@ def add_new_assistant():
             data = json.loads(request.data)
         except Exception as e:
             print(f"Error decoding json from add thread: {e}")
-            return render_template('index.html')
+            return jsonify(f"Failure: Error decoding json from add thread: {e}")
         result = ci.cmd_add_new_assistant(data)
-        foo = 3
-        return render_template('index.html')  # This a reasonable thing to do????
+        if result:
+            return jsonify({'success': True, 'message': 'Operation completed successfully'}), 200
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Operation failed',
+            }), 400
+
 
 @bp.route('/add-new-store/', methods=['POST'])
 def add_new_store():
@@ -115,7 +121,6 @@ def add_new_store():
             print(f"Error decoding json from add thread: {e}")
             return render_template('index.html')
         result = ci.cmd_add_new_vector_store(data)
-        foo = 3
         return render_template('index.html')  # This a reasonable thing to do????
 
 

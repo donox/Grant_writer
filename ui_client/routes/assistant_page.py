@@ -17,7 +17,6 @@ def update_assistant(assistant_id):
     from ui_client.routes.start import run_setup  # import here to avoid circular import
     ci = current_app.config['CLIENT_INTERFACE']
     run_setup(ci)
-
     data = request.json
     success = ci.cmd_update_assistant(assistant_id, data)
     return jsonify({"success": success})
@@ -109,15 +108,3 @@ def delete_assistant(assistant_id):
     result = ci.cmd_delete_assistant(assistant_id)
     return jsonify({'success': result})
 
-#
-# @bp.route('/delete-assistant', methods=['POST'])
-# def delete_assistant():
-#     ci = client_interface()
-#     if request.method == 'POST':
-#         data = json.loads(request.data)
-#         assistant_id = data['text']
-#         result = ci.cmd_delete_assistant(assistant_id)
-#         if result:
-#             return jsonify(success=True)
-#         else:
-#             return jsonify(success=f"Failed to delete assistant {assistant_id}")
