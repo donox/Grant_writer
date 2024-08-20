@@ -142,12 +142,12 @@ class Commands(object):
             response += mgr.create_response_text() + "\n"
         return response
 
-    def cmd_get_thread_list(self, user):
-        result = self.grant_builder.get_thread_list_user(user)
+    def cmd_get_thread_list(self):
+        result = self.thread_manager.get_thread_list()
         return result
 
     def cmd_add_new_thread(self, data):
-        result = self.grant_builder.add_new_thread(data)
+        result = self.thread_manager.add_new_thread(data)
         return result
 
     def cmd_get_assistant_list(self):

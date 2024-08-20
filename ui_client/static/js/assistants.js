@@ -1,72 +1,20 @@
 // wonders_assistants.js
 
-function get_list_of_assistants() {
-    fetch('/get-assistant-list/', {
-        method: 'GET',
-        headers: {
-            'datatype': 'json',
-        },
-    })
-        .then(response => response.json())
-        .then(data => {
-            let tbodyObj = $('#assistants tbody');
-            tbodyObj.empty();
+//
 
-            data.forEach(function (assistant) {
-                let row = $('<tr class="assistantRow"></tr>');
-                let nameCell = $('<td class="assistantName"></td>').text(assistant.name).addClass('clickable');
-                let idCell = $('<td class="assistantID"></td>').text(assistant.id);
-                let deleteButton = $('<button type="button" class="deleteAssistant btn btn-sm btn-danger">Delete</button>')
-                let actionsCell = $('<td></td>').append(deleteButton);
-                row.append(nameCell, idCell, actionsCell);
-                tbodyObj.append(row);
-            });
-
-            // Add 'NEW ASSISTANT' option only once, at the end of the table
-            let newAssistantRow = $('<tr class="assistantRow newAssistantRow"></tr>');
-            let newAssistantCell = $('<td colspan="3" class="assistantName clickable text-center"><strong>NEW ASSISTANT</strong></td>');
-            newAssistantRow.append(newAssistantCell);
-            tbodyObj.append(newAssistantRow);
-
-            // Add click event for assistant names
-            $('.assistantName').on('click', function () {
-                if ($(this).closest('.newAssistantRow').length) {
-                    openAssistantPopup(['NEW ASSISTANT'], function (result) {
-                        addAssistant(result);
-                    });
-                } else {
-                    let assistantId = $(this).siblings('.assistantID').text();
-                    loadAssistantDetails(assistantId);
-
-                    // Highlight the selected assistant
-                    $('.assistantRow').removeClass('selected');
-                    $(this).closest('.assistantRow').addClass('selected');
-
-                    // Scroll to assistant details on mobile
-                    if (window.innerWidth <= 768) {
-                        $('html, body').animate({
-                            scrollTop: $("#assistantDetails").offset().top
-                        }, 500);
-                    }
-                }
-            });
-        })
-        .catch(error => console.error('Fetch Error: ' + error));
-}
-
-function loadAssistantDetails(assistantId, isNew) {
-    fetch(`/get-assistant-details/${assistantId}`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    })
-        .then(response => response.json())
-        .then(data => {
-            displayAssistantDetails(data);
-        })
-        .catch(error => console.error('Error loading assistant details:', error));
-}
+// function loadAssistantDetails(assistantId, isNew) {
+//     fetch(`/get-assistant-details/${assistantId}`, {
+//         method: 'GET',
+//         headers: {
+//             'Content-Type': 'application/json',
+//         },
+//     })
+//         .then(response => response.json())
+//         .then(data => {
+//             displayAssistantDetails(data);
+//         })
+//         .catch(error => console.error('Error loading assistant details:', error));
+// }
 
 function displayAssistantDetails(assistant) {
     $('#assistantDetails').show();
@@ -106,7 +54,7 @@ function updateAssistantDetails() {
         .then(data => {
             if (data.success) {
                 alert('Assistant updated successfully');
-                get_list_of_assistants(); // Refresh the list
+               getList('assistants'); // Refresh the list
             } else {
                 alert('Failed to update assistant: ' + (data.message || 'Unknown error'));
             }
@@ -129,7 +77,7 @@ function deleteAssistant(assistantId) {
             .then(data => {
                 if (data.success) {
                     alert('Assistant deleted successfully');
-                    get_list_of_assistants(); // Refresh the list
+                    getList('assistants');; // Refresh the list
                 } else {
                     alert('Failed to delete assistant: ' + (data.message || 'Unknown error'));
                 }
@@ -175,25 +123,25 @@ function openAssistantPopup(prohibitedNames, callback) {
     });
 }
 
-function addAssistant(assistantData) {
-    fetch('/add-new-assistant/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(assistantData)
-    })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('New assistant added successfully');
-                get_list_of_assistants(); // Refresh the list
-            } else {
-                alert('Failed to add new assistant');
-            }
-        })
-        .catch(error => console.error('Error adding new assistant:', error));
-}
+// function addAssistant(assistantData) {
+//     fetch('/add-new-assistant/', {
+//         method: 'POST',
+//         headers: {
+//             'Content-Type': 'application/json',
+//         },
+//         body: JSON.stringify(assistantData)
+//     })
+//         .then(response => response.json())
+//         .then(data => {
+//             if (data.success) {
+//                 alert('New assistant added successfully');
+//                 getList('assistants'); // Refresh the list
+//             } else {
+//                 alert('Failed to add new assistant');
+//             }
+//         })
+//         .catch(error => console.error('Error adding new assistant:', error));
+// }
 
 // Export functions if using modules
 // export {

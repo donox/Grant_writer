@@ -43,11 +43,11 @@ def setup_run():
                                content=" ")
 
 
-@bp.route('/get-thread-list/<user>', methods=['GET'])
-def get_thread_list(user):
+@bp.route('/get-threads-list/', methods=['GET'])
+def get_threads_list():
     ci = client_interface()
     run_setup(ci)
-    tmp = ci.cmd_get_thread_list(user)
+    tmp = ci.cmd_get_thread_list()
     result = []
     for r in tmp:  # remove references to thread object which cannot be jsonified.
         r_copy = r.copy()
@@ -56,16 +56,17 @@ def get_thread_list(user):
     return jsonify(result)
 
 
-@bp.route('/get-assistant-list/', methods=['GET'])
-def get_assistant_list():
+@bp.route('/get-assistants-list/', methods=['GET'])
+def get_assistants_list():
     ci = client_interface()
     run_setup(ci)
     result = ci.cmd_get_assistant_list()
     result.insert(0, {'name': 'NEW ASSISTANT', 'id': '-----'})
     return jsonify(result)
 
-@bp.route('/get-store-list/', methods=['GET'])
-def get_store_list():
+
+@bp.route('/get-stores-list/', methods=['GET'])
+def get_stores_list():
     ci = client_interface()
     run_setup(ci)
     result = ci.cmd_get_vector_store_list()
@@ -73,21 +74,24 @@ def get_store_list():
     return jsonify(result)
 
 
-@bp.route('/add-new-thread/<user>', methods=['POST'])
-def add_new_thread(user):
+@bp.route('/add-new-thread/', methods=['POST'])
+def add_new_thread():
     ci = client_interface()
     run_setup(ci)
     if request.method == 'POST':
         try:
             data = json.loads(request.data)
-            data['user'] = user
         except Exception as e:
             print(f"Error decoding json from add thread: {e}", flush=True)
             return jsonify(failure=f"Fails adding thread: {e}")
         result = ci.cmd_add_new_thread(data)
-        # if !result:
-        #     flash('Failure updating conversation file', 'danger')
-        return jsonify(result)
+        if result:
+            return jsonify({'success': True, 'message': 'Operation completed successfully'}), 200
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Operation failed',
+            }), 400
 
 
 @bp.route('/add-new-assistant/', methods=['POST'])

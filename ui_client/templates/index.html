@@ -3,89 +3,83 @@
 {% block title %}Wonders and  Worries{% endblock %}
 
 {% block content %}
-
-<div id="threadContainer" class="container">
-    <table class="table">
-        <thead>
-        <tr>
-            <th scope="col">Name</th>
-            <th scope="col">Purpose</th>
-        </tr>
-        </thead>
-        <tbody id="threads"></tbody>
-    </table>
-</div>
-
-<div id="assistantContainer" class="container">
-    <table class="table">
-        <thead>
-        <tr>
-            <th scope="col">Name</th>
-            <th scope="col">Id</th>
-        </tr>
-        </thead>
-        <tbody id="assistants"></tbody>
-    </table>
-</div>
-
-<div id="storeContainer" class="container">
-    <table class="table">
-        <thead>
-        <tr>
-            <th scope="col">Name</th>
-            <th scope="col">Id</th>
-        </tr>
-        </thead>
-        <tbody id="stores"></tbody>
-    </table>
-</div>
-
-<div>
-    <div>Run Choices</div>
-    <div id="chooseRunAssistant" class="row">
-        <div class="col-2">Assistant:</div>
-        <div class="col-2 assistantName"></div>
-        <div class="assistantID" ></div>
+<div id="indexManager" class="container-fluid">
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <h3>Assistants</h3>
+            <div class="table-responsive">
+                <table id="assistants" class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>ID</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Assistants will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <h3>Threads</h3>
+            <div class="table-responsive">
+                <table id="threads" class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>ID</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Threads will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <h3>Stores</h3>
+            <div class="table-responsive">
+                <table id="stores" class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>ID</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Stores will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
-        <div id="chooseRunThread"class="row">
-        <div class="col-2">Thread:</div>
-        <div class="col-2 threadName"></div>
-        <div class="threadID" ></div>
-    </div>
-    <div>
-        <button type="button" class="makeRun" onclick="runQuery()">Run</button>
-    </div>
 </div>
 
+<style>
+    @media (min-width: 768px) {
+        #indexManager .col-md-6 {
+            flex: 0 0 50%;
+            max-width: 50%;
+        }
+    }
 
-<div id="popupThreadOverlay"></div>
+    @media (max-width: 767px) {
+        #indexManager .col-md-6 {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+    }
 
-<div id="popupAssistantOverlay"></div>
+    .table-responsive {
+        overflow-x: auto;
+    }
 
-<div id="popupStoreOverlay"></div>
-
-<div id="popupThreadForm">
-    <label for="threadNameInput">Name:</label>
-    <input type="text" id="threadNameInput"><br><br>
-    <label for="threadPurposeInput">Purpose:</label>
-    <input type="text" id="threadPurposeInput"><br><br>
-    <button id="threadSubmitBtn">Submit</button>
-    <button id="threadCloseBtn">Close</button>
-</div>
-
-<div id="popupAssistantForm">
-    <label for="assistantNameInput">Name:</label>
-    <input type="text" id="assistantNameInput"><br><br>
-    <button id="assistantSubmitBtn">Submit</button>
-    <button id="assistantCloseBtn">Close</button>
-</div>
-
-<div id="popupStoreForm">
-    <label for="assistantNameInput">Name:</label>
-    <input type="text" id="storeNameInput"><br><br>
-    <button id="storeSubmitBtn">Submit</button>
-    <button id="storeCloseBtn">Close</button>
-</div>
-
-
+    #indexManager table {
+        width: 100%;
+    }
+</style>
 {% endblock %}

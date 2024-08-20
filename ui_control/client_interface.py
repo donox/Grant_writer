@@ -44,8 +44,8 @@ class ClientInterface(object):
     #     results = self.cmd_get_last_results()
     #     return results
 
-    def cmd_get_thread_list(self, user):
-        result = self.command_processor.cmd_get_thread_list(user)
+    def cmd_get_thread_list(self):
+        result = self.command_processor.cmd_get_thread_list()
         return result
 
     def cmd_add_new_thread(self, data):

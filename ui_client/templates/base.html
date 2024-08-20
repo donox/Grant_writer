@@ -23,10 +23,13 @@
             <a class="nav-link" href="{{ url_for('assistant.assistant_processor') }}">Assistants</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('start.index') }}">Conversations</a>
+            <a class="nav-link" href="{{ url_for('thread.thread_processor') }}">Threads</a>
         </li>
         <li class="nav-item">
             <a class="nav-link" href="{{ url_for('vector.vector_store_processor') }}">Stores</a>
+        </li>
+                <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('start.index') }}">Conversations</a>
         </li>
     </ul>
 </nav>
@@ -51,6 +54,7 @@
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-te/1.4.0/jquery-te.min.js"></script>
 <script src="{{ url_for('static', filename='js/tree.js') }}"></script>
 
+
 <script src="{{ url_for('static', filename='js/config.js') }}"></script>
 <script src="{{ url_for('static', filename='js/wonders.js') }}"></script>
 <script src="{{ url_for('static', filename='js/page_config.js') }}"></script>
@@ -59,6 +63,8 @@
 
 <!-- Add other artifact-specific scripts here -->
 <script src="{{ url_for('static', filename='js/assistants.js') }}"></script>
+<script src="{{ url_for('static', filename='js/threads.js') }}"></script>
+<script src="{{ url_for('static', filename='js/stores.js') }}"></script>
 
 
 </body>

@@ -21,6 +21,9 @@ class AssistantManager(object):
             mgr = Assistant(self.client, assistant_id=assistant.id)
             self.known_assistants.append(mgr)
 
+    def get_objects_list(self):             # Support for generic list
+        return self.retrieve_existing_assistants()
+
     def get_assistants_as_list_of_dictionaries(self):
         result = []
         for assistant in self.known_assistants:

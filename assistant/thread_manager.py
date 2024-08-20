@@ -6,6 +6,7 @@ from assistant.message_manager import Message
 class ThreadManager(object):
     def __init__(self, file_path):
         self.grant_builder = None
+        self.client = None
         self.file = file_path
         self.known_oai_threads = []  # These are the threads as recorded in the 'database' (survives over runs)
         with open(self.file, 'r') as thread_data:
@@ -13,7 +14,7 @@ class ThreadManager(object):
             for line in rdr:
                 if len(line) < 4:
                     break
-                usr, thread_name, thread_id, purpose = line
+                usr, thread_name, thread_id, purpose = line  # todo remove use of 'user'
                 tmp = {"user": usr,
                        "name": thread_name,
                        "thread_id": thread_id,
@@ -24,11 +25,12 @@ class ThreadManager(object):
 
     def set_grant_builder(self, grant_builder):  # Needed to avoid circular import with ThreadManager
         self.grant_builder = grant_builder
-        for thread in self.known_oai_threads:       # Check in case thread was created before grant_builder defined
+        self.client = grant_builder.get_client()
+        for thread in self.known_oai_threads:  # Check in case thread was created before grant_builder defined
             ww_thread = thread["ww_thread"]
             ww_thread.set_grant_builder(self.grant_builder)
             if len(ww_thread.get_id()) > 5:
-                self.verify_thread(ww_thread.get_id())
+                self.verify_thread(ww_thread.get_id())   # TODO: should trap error return
 
     def verify_thread(self, thread_id):
         client = self.grant_builder.get_client()
@@ -38,20 +40,18 @@ class ThreadManager(object):
         else:
             raise ValueError(f"Thread {thread_id} does not exist")
 
-    def get_thread_list_user(self, user):
-        user_threads = []
-        for thread in self.known_oai_threads:
-            if thread['user'] == user or thread['user'] == '*':
-                user_threads.append(thread)
-        return user_threads
+    def get_thread_list(self):
+        return self.known_oai_threads
 
+    def get_objects_list(self):  # Support for generic list
+        return self.get_thread_list()
 
-    def add_new_thread(self, thread, user, name, purpose):
+    def add_new_thread(self, data):
+        thread = self.client.beta.threads.create()
         thread_id = thread.id
-        tmp = {"user": user,
-               "name": name,
+        tmp = {"name": data['name'],
                "thread_id": thread_id,
-               "purpose": purpose,
+               "purpose": data['purpose'],
                "ww_thread": None}
         tmp["ww_thread"] = Thread(tmp, self)
         self.known_oai_threads.append(tmp)
@@ -68,7 +68,7 @@ class ThreadManager(object):
                     row_list = [row[x] for x in row if type(row[x]) is str]
                     if row_list[1] not in rows_written:
                         rows_written.append(row_list[1])
-                        writer.writerow(row_list)     # remove reference to thread object
+                        writer.writerow(row_list)  # remove reference to thread object
                 thread_data.close()
         except Exception as e:
             print(f"Failure writing threads to file: {e.args}")
@@ -102,7 +102,7 @@ class Thread(object):
         self.thread_manager = thread_manager
         self.thread_name = data['name']
         self.oai_thread = None
-        self.thread_instantiated = False    # means has oai_thread set
+        self.thread_instantiated = False  # means has oai_thread set
         self.thread_id = data['thread_id']
         self.user = data['user']
         self.purpose = data['purpose']
@@ -125,7 +125,7 @@ class Thread(object):
         continuing to the end of the message list or the next message with an id
         in the query_list. If no message id is given, the last message in
         the query list is presumed."""
-        following_query = None      # id of query following msg_id if not at end
+        following_query = None  # id of query following msg_id if not at end
         if msg_id:
             last_query = msg_id
             if last_query == self.query_list[-1]:
@@ -135,7 +135,7 @@ class Thread(object):
                 for nbr, this_id in enumerate(self.query_list):
                     if this_id == last_query:
                         is_most_recent = False
-                        following_query = self.query_list[nbr+1]
+                        following_query = self.query_list[nbr + 1]
                         found_it = True
                         break
                 else:
@@ -149,7 +149,7 @@ class Thread(object):
             if this_msg_id == msg_id:
                 tail_list = self.message_list[nbr:]
                 break
-        if not is_most_recent:    # implies following_query is not None
+        if not is_most_recent:  # implies following_query is not None
             for nbr, this_msg in enumerate(tail_list):
                 this_msg_id = this_msg.get_message_id()
                 if following_query == this_msg_id:
@@ -160,7 +160,7 @@ class Thread(object):
 
         # the first element of tail_list is the query, all following are the responses.
         result = []
-        for msg in tail_list[1:]:     # just get responses
+        for msg in tail_list[1:]:  # just get responses
             result.append(msg.make_message_json())
         result_id = 'rslt' + tail_list[0].get_message_id()
         res = {
@@ -185,7 +185,7 @@ class Thread(object):
             if msg.get_role() == 'user':
                 self.query_list.append(msg.get_message_id())
 
-    def set_grant_builder(self, gb):            # Defending against Threads created before manager knows builder
+    def set_grant_builder(self, gb):  # Defending against Threads created before manager knows builder
         self.grant_builder = gb
 
     def get_oai_thread(self):
@@ -221,7 +221,7 @@ class Thread(object):
         """Return list of messages from beginning of message list to end or message marked as last entry."""
         result = []
         if len(self.message_list) > 1:
-            result.append(self.message_list[0])    # first message is marked as the end.
+            result.append(self.message_list[0])  # first message is marked as the end.
         for message in self.message_list[1:]:
             if message.get_last_message():
                 break
@@ -233,4 +233,3 @@ class Thread(object):
             if msg.get_message_id() == message_id:
                 return msg
         return None
-

@@ -1,34 +1,66 @@
 // wonders_config.js
 
 var listConfigs;
+
 function makeListConfigs() {
     listConfigs = {
         assistants: {
-            fetchUrl: '/get-assistant-list/',
-            tableId: 'assistants',
+            listType: 'assistants',
+            fetchUrl: '/get-assistants-list/',
+            detailsUrl: '/get-assistant-details',
+            createUrl: '/add-new-assistant/',
+            addItem: (data) => createNewItem('assistants', data),
+            tableId: 'assistantsTable',
             selectorId: 'assistantSelector',
-            newItemText: 'NEW ASSISTANT',
-            columns: ['name', 'id'],
-            onItemClick: loadAssistantDetails,
-            onDeleteClick: deleteAssistant
+            newItemText: 'CREATE NEW ASSISTANT',
+            fields: [
+                {name: 'name', type: 'text', label: 'Name', required: true},
+                {name: 'description', type: 'textarea', label: 'Description'},
+                {name: 'model', type: 'select', label: 'Model', options: ['gpt-3.5-turbo', 'gpt-4']}
+            ],
+            columns: ['name', 'id', 'description', 'model'],
+            onItemClick: (id) => loadItemDetails('assistants', id),
+            onDeleteClick: deleteAssistant,
+            onNewItemClick: (existingNames) => openPopup('assistants', existingNames),
+            displayDetails: displayAssistantDetails
         },
         threads: {
-            fetchUrl: '/get-thread-list/',
-            tableId: 'threads',
+            listType: 'threads',
+            fetchUrl: '/get-threads-list/',
+            detailsUrl: '/get-thread-details',
+            createUrl: '/add-new-thread/',
+            addItem: (data) => createNewItem('threads', data),
+            tableId: 'threadsTable',
             selectorId: 'threadSelector',
-            newItemText: 'NEW THREAD',
-            columns: ['name', 'id'],
-            // onItemClick: loadThreadDetails,
-            // onDeleteClick: deleteThread
+            newItemText: 'CREATE NEW THREAD',
+            fields: [
+                {name: 'name', type: 'text', label: 'Name', required: true},
+                {name: 'purpose', type: 'text', label: 'Purpose'},
+            ],
+            columns: ['name', 'id', 'purpose'],
+            onItemClick: (id) => loadItemDetails('threads', id),
+            onDeleteClick: deleteThread,
+            onNewItemClick: (existingNames) => openPopup('threads', existingNames),
+            // displayDetails: displayThreadDetails
         },
         stores: {
-            fetchUrl: '/get-store-list/',
-            tableId: 'stores',
+            listType: 'stores',
+            fetchUrl: '/get-stores-list/',
+            detailsUrl: '/get-store-details',
+            createUrl: '/add-new-store/',
+            addItem: (data) => createNewItem('stores', data),
+            tableId: 'storesTable',
             selectorId: 'storeSelector',
             newItemText: 'NEW STORE',
-            columns: ['name', 'id'],
-            // onItemClick: loadStoreDetails,
-            // onDeleteClick: deleteStore
+            fields: [
+                {name: 'name', type: 'text', label: 'Name', required: true},
+                {name: 'description', type: 'text', label: 'Description'},
+            ],
+            columns: ['name', 'id', 'description'],
+            onItemClick: (id) => loadItemDetails('stores', id),
+            onDeleteClick: deleteStore,
+            onNewItemClick: (existingNames) => openPopup('stores', existingNames),
+            displayDetails: displayStoreDetails
         }
     }
 }

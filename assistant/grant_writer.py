@@ -50,16 +50,12 @@ class GrantWriter(object):
     def get_client(self):
         return self.client      # client is an OpenAI object, not an assistant
 
-
-
     # def retrieve_existing_assistants(self):
     #     self.assistant_manager.retrieve_existing_assistants()
 
-
-
-    def get_thread_list_user(self, user):
-        result = self.thread_manager.get_thread_list_user(user)
-        return result
+    # def get_thread_list_user(self, user):
+    #     result = self.thread_manager.get_thread_list_user(user)
+    #     return result
 
     def get_thread_by_name(self, thread_name):
         thread = self.thread_manager.get_known_thread_entry_from_name(thread_name)

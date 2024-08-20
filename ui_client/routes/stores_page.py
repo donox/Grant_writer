@@ -12,7 +12,7 @@ def vector_store_processor():
     from ui_client.routes.start import run_setup    # import here to avoid circular import
     ci = current_app.config['CLIENT_INTERFACE']
     run_setup(ci)
-    return render_template('vs.html')
+    return render_template('store_processor.html')
 
 
 @vect.route("/load-store/", methods=['POST'])

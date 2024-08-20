@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+
+{% block title %}Wonders and  Worries{% endblock %}
+
+{% block content %}
+
+<div id="storeManager" class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h3>Stores</h3>
+            <div class="table-responsive">
+                <table id="storesTable" class="table table-hover">
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>ID</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <!-- Stores will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-4">
+        <div class="col-12">
+            <div id="StoreDetails" style="display: none;">
+                <h3>Store Details</h3>
+                <form>
+                    <div class="form-group">
+                        <label for="StoreName">Name:</label>
+                        <input type="text" id="StoreName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="StoreId">ID:</label>
+                        <input type="text" id="StoreId" class="form-control" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="StoreInstructions">Instructions:</label>
+                        <textarea id="StoreInstructions" class="form-control" rows="4"></textarea>
+                    </div>
+                    <!-- Add more fields as necessary -->
+                    <button type="button" id="updateStore" class="btn btn-primary mt-3">Update Store</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Popup for creating new Store -->
+
+<div id="popupOverlay" style="display:none;">
+    <div id="popupForm">
+        <h3 id="popupTitle"></h3>
+        <input type="text" id="nameInput" placeholder="Enter name">
+        <button id="submitBtn">Create</button>
+        <button id="closeBtn">Cancel</button>
+    </div>
+</div>
+<style>
+    #StoreManager {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    #Stores tr.selected {
+        background-color: #e0e0e0;
+    }
+
+    #StoreDetails {
+        border: 1px solid #ddd;
+        padding: 20px;
+        border-radius: 5px;
+        margin-top: 20px;
+    }
+
+    @media (max-width: 768px) {
+        #StoreDetails {
+            margin-top: 30px;
+        }
+    }
+</style>
+
+<script>
+    $(document).ready(function () {
+
+        //DEBUG
+        console.log("Document ready. Setting up event listeners.");
+
+        // ['assistants', 'threads', 'stores'].forEach(listType => {
+        ['stores'].forEach(listType => {
+            console.log(`Setting up listener for ${listType}`);
+            const tableSelector = `#${listType}Table`;
+            console.log(`Table selector: ${tableSelector}`);
+
+            const $table = $(tableSelector);
+            if ($table.length) {
+                console.log(`Table found for ${listType}`);
+                $table.on('click', '.new-item-row', function () {
+                    console.log(`New ${listType} row clicked`);
+                    openPopup(listType);
+                });
+            } else {
+                console.error(`Table not found for ${listType}`);
+            }
+        });
+        //END DEBUG
+        // Event listener for the Store Manager menu item
+        $('#StoreManagerMenuItem').on('click', function () {
+            console.log('Click storeManagerMenuItem');
+            $('#mainContent').load('/Store-manager-template', function () {
+                initializeStoreManager();
+            });
+        });
+
+        // function loadStoreDetails(StoreId) {
+        //     fetch(`/get-Store-details/${StoreId}`, {
+        //         method: 'GET',
+        //         headers: {
+        //             'Content-Type': 'application/json',
+        //         },
+        //     })
+        //     .then(response => response.json())
+        //     .then(data => {
+        //         displayStoreDetails(data);
+        //     })
+        //     .catch(error => console.error('Error loading Store details:', error));
+        // }
+        //
+        // function displayStoreDetails(Store) {
+        //     $('#StoreName').text(Store.name);
+        //     $('#StoreId').text(Store.id);
+        //     $('#StoreInstructions').val(Store.instructions);
+        //     // Add more fields as necessary
+        //
+        //     // Show the Store details section
+        //     $('#StoreDetails').show();
+        // }
+        //
+        // function clearStoreDetails() {
+        //     $('#StoreName').text('');
+        //     $('#StoreId').text('');
+        //     $('#StoreInstructions').val('');
+        //     // Clear more fields as necessary
+        //
+        //     // Hide the Store details section
+        //     $('#StoreDetails').hide();
+        // }
+        //
+        // function updateStoreDetails() {
+        //     let StoreId = $('#StoreId').text();
+        //     let updatedData = {
+        //         name: $('#StoreName').text(),
+        //         instructions: $('#StoreInstructions').val(),
+        //         // Add more fields as necessary
+        //     };
+        //
+        //     fetch(`/update-Store/${StoreId}`, {
+        //         method: 'POST',
+        //         headers: {
+        //             'Content-Type': 'application/json',
+        //         },
+        //         body: JSON.stringify(updatedData)
+        //     })
+        //     .then(response => response.json())
+        //     .then(data => {
+        //         if (data.success) {
+        //             alert('Store updated successfully');
+        //             get_list_of_Stores(); // Refresh the list
+        //         } else {
+        //             alert('Failed to update Store');
+        //         }
+        //     })
+        //     .catch(error => console.error('Error updating Store:', error));
+        // }
+    });
+</script>
+
+{% endblock %}

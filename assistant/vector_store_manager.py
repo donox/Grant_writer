@@ -34,6 +34,9 @@ class VectorStoreManager(object):
     def get_vector_stores(self):
         return self.vector_store_list
 
+    def get_objects_list(self):             # Support for generic list
+        return self.get_vector_stores()
+
     def get_vector_stores_as_list_of_dictionaries(self):
         result = []
         for vector_store in self.get_vector_stores():

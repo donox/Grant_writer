@@ -4,11 +4,15 @@ function initializePage() {
 
     // Check for the presence of specific div IDs to determine the page
     let pageConfig;
-    makeListConfigs();
+    makeListConfigs();    // workaround to get out of circular imports.
     if (document.getElementById('assistantManager')) {
         pageConfig = window.pageConfigs.assistantProcessorPage;
     } else if (document.getElementById('indexManager')) {  // Assuming you have a div with id 'indexManager' on the index page
         pageConfig = window.pageConfigs.indexPage;
+    } else if (document.getElementById('threadManager')) {  // Assuming you have a div with id 'indexManager' on the index page
+        pageConfig = window.pageConfigs.threadPage;
+    } else if (document.getElementById('storeManager')) {  // Assuming you have a div with id 'indexManager' on the index page
+        pageConfig = window.pageConfigs.storePage;
     } else {
         console.error('No configuration found for this page');
         return;

@@ -9,7 +9,7 @@
             <div class="col-12">
                 <h3>Assistants</h3>
                 <div class="table-responsive">
-                    <table id="assistants" class="table table-hover">
+                    <table id="assistantsTable" class="table table-hover">
                         <thead>
                             <tr>
                                 <th>Name</th>
@@ -50,15 +50,15 @@
     </div>
 
     <!-- Popup for creating new assistant -->
-    <div id="popupAssistantOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000;">
-        <div id="popupAssistantForm" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); background:white; padding:20px; border-radius:5px;">
+    <div id="popupOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000;">
+        <div id="popupForm" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); background:white; padding:20px; border-radius:5px;">
             <h3>Create New Assistant</h3>
             <div class="form-group">
-                <label for="assistantNameInput">Assistant Name:</label>
-                <input type="text" id="assistantNameInput" class="form-control" required>
+                <label for="nameInput">Assistant Name:</label>
+                <input type="text" id="nameInput" class="form-control" required>
             </div>
-            <button id="assistantSubmitBtn" class="btn btn-primary">Create</button>
-            <button id="assistantCloseBtn" class="btn btn-secondary">Cancel</button>
+            <button id="submitBtn" class="btn btn-primary">Create</button>
+            <button id="closeBtn" class="btn btn-secondary">Cancel</button>
         </div>
     </div>
     <style>
@@ -86,33 +86,49 @@
     </style>
 
 <script>
-    $(document).ready(function() {
-    // Event listener for the Assistant Manager menu item
-    $('#assistantManagerMenuItem').on('click', function() {
-        console.log('Click assistantManagerMenuItem');
-        $('#mainContent').load('/assistant-manager-template', function() {
-            initializeAssistantManager();
+    $(document).ready(function () {
+        // // DEBUG POPUPS
+        // console.log("Document ready. Setting up event listeners.");
+        //
+        // // ['assistants', 'threads', 'stores'].forEach(listType => {
+        //      ['assistants'].forEach(listType => {
+        //     console.log(`Setting up listener for ${listType}`);
+        //     const tableSelector = `#${listType}Table`;
+        //     console.log(`Table selector: ${tableSelector}`);
+        //
+        //     const $table = $(tableSelector);
+        //     if ($table.length) {
+        //         console.log(`Table found for ${listType}`);
+        //         $table.on('click', '.new-item-row', function () {
+        //             console.log(`New ${listType} row clicked`);
+        //             openPopup(listType);
+        //         });
+        //     } else {
+        //         console.error(`Table not found for ${listType}`);
+        //     }
+        // });
+        //
+        // // END DEBUG
+
+        // Event listener for the assistant Manager menu item
+        $('#assistantManagerMenuItem').on('click', function () {
+            console.log('Click assistantManagerMenuItem');
+            $('#mainContent').load('/assistant-manager-template', function () {
+                initializeAssistantManager();
+            });
         });
+
+
     });
+    // $(document).ready(function() {
+    // // Event listener for the Assistant Manager menu item
+    // $('#assistantManagerMenuItem').on('click', function() {
+    //     console.log('Click assistantManagerMenuItem');
+    //     $('#mainContent').load('/assistant-manager-template', function() {
+    //         initializeAssistantManager();
+    //     });
+    // });
 
-    function initializeAssistantManager() {
-        // Load the list of assistants
-        get_list_of_assistants();
-
-        // Add event listener for assistant selection
-        $('#assistants').on('click', '.assistantName', function() {
-            let assistantId = $(this).siblings('.assistantID').text();
-            loadAssistantDetails(assistantId);
-        });
-
-        // Initialize with no assistant selected
-        clearAssistantDetails();
-
-        // Add event listener for updating assistant
-        $('#updateAssistant').on('click', function() {
-            updateAssistantDetails();
-        });
-    }
 
     // function loadAssistantDetails(assistantId) {
     //     fetch(`/get-assistant-details/${assistantId}`, {
@@ -174,7 +190,7 @@
     //     })
     //     .catch(error => console.error('Error updating assistant:', error));
     // }
-});
+// });
 </script>
 
 {% endblock %}

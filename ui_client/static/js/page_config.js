@@ -1,17 +1,29 @@
-
 // wonders_page_config.js
 
 window.pageConfigs = {
     assistantProcessorPage: {
         lists: ['assistants'],
         eventListeners: [
-            { selector: '#updateAssistant', event: 'click', handler: 'updateAssistantDetails' }
+            {selector: '#updateAssistant', event: 'click', handler: 'updateAssistantDetails'}
         ]
     },
     indexPage: {
-        lists: ['assistants', 'threads', 'stores'],
+        // lists: ['assistants', 'threads', 'stores'],
+        lists: ['assistants', 'threads'],
         eventListeners: []
-    }
+    },
+    threadPage: {
+        lists: ['threads'],
+        eventListeners: [
+            {selector: '#updateThread', event: 'click', handler: 'updateThreadDetails'}
+        ]
+    },
+    storePage: {
+        lists: ['stores'],
+        eventListeners: [
+            {selector: '#updateStore', event: 'click', handler: 'updateStoreDetails'}
+        ]
+    },
     // Add configurations for other pages as needed
 };
 
