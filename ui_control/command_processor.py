@@ -215,8 +215,8 @@ class Commands(object):
             return "There were no results to return"
         return result
 
-    def cmd_delete_thread(self, thread_name):
-        result = self.grant_builder.delete_thread(thread_name)
+    def cmd_delete_thread(self, thread_id):
+        result = self.grant_builder.delete_thread(thread_id)
         return result
 
     def cmd_delete_assistant(self, assistant_id):

@@ -61,7 +61,6 @@ def get_assistants_list():
     ci = client_interface()
     run_setup(ci)
     result = ci.cmd_get_assistant_list()
-    result.insert(0, {'name': 'NEW ASSISTANT', 'id': '-----'})
     return jsonify(result)
 
 
@@ -70,7 +69,6 @@ def get_stores_list():
     ci = client_interface()
     run_setup(ci)
     result = ci.cmd_get_vector_store_list()
-    result.insert(0, {'name': 'NEW VECTOR STORE', 'id': '-----'})
     return jsonify(result)
 
 
@@ -81,6 +79,7 @@ def add_new_thread():
     if request.method == 'POST':
         try:
             data = json.loads(request.data)
+            data['user'] = 'Don'        # TODO:  REPLACE THIS WITH REAL user
         except Exception as e:
             print(f"Error decoding json from add thread: {e}", flush=True)
             return jsonify(failure=f"Fails adding thread: {e}")
@@ -125,7 +124,13 @@ def add_new_store():
             print(f"Error decoding json from add thread: {e}")
             return render_template('index.html')
         result = ci.cmd_add_new_vector_store(data)
-        return render_template('index.html')  # This a reasonable thing to do????
+        if result:
+            return jsonify({'success': True, 'message': 'Operation completed successfully'}), 200
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Operation failed',
+            }), 400
 
 
 # Switch page to query view
@@ -170,32 +175,32 @@ def switch_to_assistant():
     return tmplt
 
 
-@bp.route('/delete-thread', methods=['POST'])
-def delete_thread():
-    ci = client_interface()
-    if request.method == 'POST':
-        data = json.loads(request.data)
-        threadName = data['text']
-        result = ci.cmd_delete_thread(threadName)
-        if result:
-            return jsonify(success=True)
-        else:
-            return jsonify(failure=f"Failed to delete {threadName}")
+# @bp.route('/delete-thread', methods=['POST'])
+# def delete_thread():
+#     ci = client_interface()
+#     if request.method == 'POST':
+#         data = json.loads(request.data)
+#         threadName = data['text']
+#         result = ci.cmd_delete_thread(threadName)
+#         if result:
+#             return jsonify(success=True)
+#         else:
+#             return jsonify(failure=f"Failed to delete {threadName}")
 
 
 
         
-@bp.route('/delete-store', methods=['POST'])
-def delete_store():
-    ci = client_interface()
-    if request.method == 'POST':
-        data = json.loads(request.data)
-        store_id = data['text']
-        result = ci.cmd_delete_store(store_id)
-        if result:
-            return jsonify(success=True)
-        else:
-            return jsonify(success=f"Failed to delete store {store_id}")
+# @bp.route('/delete-store', methods=['POST'])
+# def delete_store():
+#     ci = client_interface()
+#     if request.method == 'POST':
+#         data = json.loads(request.data)
+#         store_id = data['text']
+#         result = ci.cmd_delete_store(store_id)
+#         if result:
+#             return jsonify(success=True)
+#         else:
+#             return jsonify(success=f"Failed to delete store {store_id}")
 
 # @bp.route('/add', methods=['GET', 'POST'])
 # def add_message():

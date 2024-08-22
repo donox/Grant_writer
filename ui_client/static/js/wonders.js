@@ -28,50 +28,6 @@ function getList(listType) {
         .catch(error => console.error(`Fetch Error for ${listType}:`, error));
 }
 
-// function populateTable(tableElement, data, config) {
-//     const $tbody = tableElement.find('tbody');
-//     $tbody.empty();
-//
-//     data.forEach(item => {
-//         const row = $('<tr>');
-//
-//         config.columns.forEach(column => {
-//             row.append($('<td>').text(item[column]));
-//         });
-//
-//         // Add action buttons
-//         const actionCell = $('<td>');
-//
-//         // View/Edit button
-//         const viewEditBtn = $('<button>')
-//             .addClass('btn btn-sm btn-primary mr-2')
-//             .text('View/Edit')
-//             .on('click', () => config.onItemClick(item.id));
-//         actionCell.append(viewEditBtn);
-//
-//         // Delete button
-//         const deleteBtn = $('<button>')
-//             .addClass('btn btn-sm btn-danger')
-//             .text('Delete')
-//             .on('click', () => config.onDeleteClick(item.id));
-//         actionCell.append(deleteBtn);
-//
-//         row.append(actionCell);
-//         $tbody.append(row);
-//     });
-//
-//     // Add "New Item" row
-//     const newItemRow = $('<tr>').addClass('new-item-row');
-//     const newItemCell = $('<td>')
-//         .attr('colspan', config.columns.length + 1)
-//         .text(config.newItemText)
-//         .on('click', () => {
-//             const existingNames = data.map(item => item.name);
-//             openPopup(config.listType, existingNames, (newItemData) => createNewItem(config.listType, newItemData));
-//         });
-//     newItemRow.append(newItemCell);
-//     $tbody.append(newItemRow);
-// }
 function populateTable(tableElement, data, config) {
     const $tbody = tableElement.find('tbody');
     $tbody.empty();
@@ -123,55 +79,12 @@ function populateTable(tableElement, data, config) {
         .text(config.newItemText)
         .on('click', () => {
             const existingNames = data.map(item => item.name);
+            console.log(`Existing names for ${config.listType}:`, existingNames);
             openPopup(config.listType, existingNames, (newItemData) => createNewItem(config.listType, newItemData));
         });
     newItemRow.append(newItemCell);
     $tbody.append(newItemRow);
 }
-// function populateTable(tableElement, data, config) {
-//     const tbody = tableElement.find('tbody');
-//     tbody.empty();
-//
-//     data.forEach(item => {
-//         const row = $('<tr>');
-//
-//         config.columns.forEach(column => {
-//             row.append($('<td>').text(item[column]));
-//         });
-//
-//         // Add action buttons
-//         const actionCell = $('<td>');
-//
-//         // View/Edit button
-//         const viewEditBtn = $('<button>')
-//             .addClass('btn btn-sm btn-primary mr-2')
-//             .text('View/Edit')
-//             .on('click', () => config.onItemClick(item.id));
-//         actionCell.append(viewEditBtn);
-//
-//         // Delete button
-//         const deleteBtn = $('<button>')
-//             .addClass('btn btn-sm btn-danger')
-//             .text('Delete')
-//             .on('click', () => config.onDeleteClick(item.id));
-//         actionCell.append(deleteBtn);
-//
-//         row.append(actionCell);
-//         tbody.append(row);
-//     });
-//
-//     // Add "New Item" row
-//     const newItemRow = $('<tr>').addClass('new-item-row');
-//     const newItemCell = $('<td>')
-//         .attr('colspan', config.columns.length + 1)
-//         .text(config.newItemText)
-//         .on('click', () => openAssistantPopup(
-//             data.map(item => item.name),
-//             addAssistant
-//         ));
-//     newItemRow.append(newItemCell);
-//     tbody.append(newItemRow);
-// }
 
 function populateSelector(selectorElement, data) {
     selectorElement.empty();
@@ -243,95 +156,6 @@ function updateitemDetails(itemType) {
             alert('An error occurred while updating the assistant');
         });
 }
-
-// function openPopup(listType, existingNames, createCallback) {
-//     const config = window.listConfigs[listType];
-//     if (!config) {
-//         console.error(`No configuration found for list type: ${listType}`);
-//         return;
-//     }
-//
-//     $('#popupOverlay, #popupForm').show();
-//     $('#popupTitle').text(`Create New ${listType.slice(0, -1)}`);
-//     $('#nameInput').val('');
-//
-//     $('#submitBtn').off('click').on('click', function() {
-//         const name = $('#nameInput').val().trim();
-//         if (name) {
-//             if (existingNames.includes(name)) {
-//                 alert(`A ${listType.slice(0, -1)} with this name already exists. Please choose a different name.`);
-//             } else {
-//                 createCallback({ name: name });
-//                 $('#popupOverlay, #popupForm').hide();
-//             }
-//         } else {
-//             alert('Please enter a name.');
-//         }
-//     });
-//
-//     $('#closeBtn').off('click').on('click', function() {
-//         $('#popupOverlay, #popupForm').hide();
-//     });
-// }
-
-// function openPopup(listType) {
-//     console.log(`Opening popup for ${listType}`);
-//     const config = window.listConfigs[listType];
-//     if (!config) {
-//         console.error(`No configuration found for list type: ${listType}`);
-//         return;
-//     }
-//
-//     // Get existing item names to check for duplicates
-//     const existingNames = $(`#${config.tableId} tbody tr:not(.new-item-row) td:first-child`)
-//         .map(function() { return $(this).text(); })
-//         .get();
-//
-//     $('#popupOverlay, #popupForm').show();
-//     $('#popupTitle').text(`Create New ${listType.slice(0, -1)}`);
-//     $('#nameInput').val('');
-//
-//     $('#submitBtn').off('click').on('click', function() {
-//         const name = $('#nameInput').val().trim();
-//         if (name) {
-//             if (existingNames.includes(name)) {
-//                 alert(`A ${listType.slice(0, -1)} with this name already exists. Please choose a different name.`);
-//             } else {
-//                 createNewItem(listType, { name: name });
-//                 $('#popupOverlay, #popupForm').hide();
-//             }
-//         } else {
-//             alert('Please enter a name.');
-//         }
-//     });
-//
-//     $('#closeBtn').off('click').on('click', function() {
-//         $('#popupOverlay, #popupForm').hide();
-//     });
-// }
-// function createNewItem(listType, itemData) {
-//     console.log(`Creating new ${listType} with data:`, itemData);
-//     const config = window.listConfigs[listType];
-//
-//     fetch(config.createUrl, {
-//         method: 'POST',
-//         headers: {
-//             'Content-Type': 'application/json',
-//         },
-//         body: JSON.stringify(itemData)
-//     })
-//     .then(response => response.json())
-//     .then(data => {
-//         if (data.success) {
-//             alert(`New ${listType.slice(0, -1)} added successfully`);
-//             getList(listType);  // Refresh the list
-//         } else {
-//             alert(`Failed to add new ${listType.slice(0, -1)}: ${data.message || 'Unknown error'}`);
-//         }
-//     })
-//     .catch(error => console.error(`Error adding new ${listType.slice(0, -1)}:`, error));
-// }
-
 function openPopup(listType, existingNames, createCallback) {
     const config = window.listConfigs[listType];
     if (!config) {
@@ -395,32 +219,6 @@ function openPopup(listType, existingNames, createCallback) {
     });
 }
 
-// function createNewItem(listType, itemData) {
-//     const config = window.listConfigs[listType];
-//     if (!config) {
-//         console.error(`No configuration found for list type: ${listType}`);
-//         return;
-//     }
-//
-//     fetch(config.createUrl, {
-//         method: 'POST',
-//         headers: {
-//             'Content-Type': 'application/json',
-//         },
-//         body: JSON.stringify(itemData)
-//     })
-//     .then(response => response.json())
-//     .then(data => {
-//         if (data.success) {
-//             alert(`New ${listType.slice(0, -1)} added successfully`);
-//             getList(listType);  // Refresh the list
-//         } else {
-//             alert(`Failed to add new ${listType.slice(0, -1)}: ${data.message || 'Unknown error'}`);
-//         }
-//     })
-//     .catch(error => console.error(`Error adding new ${listType.slice(0, -1)}:`, error));
-// }
-// Set up event listeners for all list types
 function createNewItem(listType, itemData) {
     const config = window.listConfigs[listType];
     if (!config || !config.createUrl) {
@@ -445,8 +243,7 @@ function createNewItem(listType, itemData) {
         }
     })
     .catch(error => console.error(`Error adding new ${listType.slice(0, -1)}:`, error));
-}
-$(document).ready(function() {
+}$(document).ready(function() {
 
 });
 // Generic utility functions can go here

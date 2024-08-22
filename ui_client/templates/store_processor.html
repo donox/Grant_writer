@@ -90,27 +90,6 @@
 <script>
     $(document).ready(function () {
 
-        //DEBUG
-        console.log("Document ready. Setting up event listeners.");
-
-        // ['assistants', 'threads', 'stores'].forEach(listType => {
-        ['stores'].forEach(listType => {
-            console.log(`Setting up listener for ${listType}`);
-            const tableSelector = `#${listType}Table`;
-            console.log(`Table selector: ${tableSelector}`);
-
-            const $table = $(tableSelector);
-            if ($table.length) {
-                console.log(`Table found for ${listType}`);
-                $table.on('click', '.new-item-row', function () {
-                    console.log(`New ${listType} row clicked`);
-                    openPopup(listType);
-                });
-            } else {
-                console.error(`Table not found for ${listType}`);
-            }
-        });
-        //END DEBUG
         // Event listener for the Store Manager menu item
         $('#StoreManagerMenuItem').on('click', function () {
             console.log('Click storeManagerMenuItem');

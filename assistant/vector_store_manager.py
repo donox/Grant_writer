@@ -47,6 +47,7 @@ class VectorStoreManager(object):
     def add_new_vector_store(self, name):
         new_vs = VectorStore(self.client, name)
         self.vector_store_list.append(new_vs)
+        return new_vs
 
     def delete_store(self, store_id):
         this_store = None

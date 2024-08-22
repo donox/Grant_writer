@@ -38,7 +38,7 @@ def get_thread_details(thread_id):
 # end refactoring
 
 
-@thr.route("/thread-processor")
+@thr.route("/thread-processor/")
 def thread_processor():
     from ui_client.routes.start import run_setup  # import here to avoid circular import
     ci = current_app.config['CLIENT_INTERFACE']
@@ -62,7 +62,7 @@ def load_thread():
             return jsonify(failure=f"Failed to load thread {thread_id}")
 
 
-@thr.route("/update-instructions", methods=['POST'])
+@thr.route("/update-instructions/", methods=['POST'])
 def update_instructions():
     from ui_client.routes.start import run_setup  # import here to avoid circular import
     ci = current_app.config['CLIENT_INTERFACE']

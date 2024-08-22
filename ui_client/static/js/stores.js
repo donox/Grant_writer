@@ -77,7 +77,7 @@ function deleteStore(storeId) {
             .then(data => {
                 if (data.success) {
                     alert('Store deleted successfully');
-                    get_list_of_stores(); // Refresh the list
+                    getList('stores'); // Refresh the list
                 } else {
                     alert('Failed to delete store: ' + (data.message || 'Unknown error'));
                 }

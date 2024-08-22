@@ -70,15 +70,14 @@ class GrantWriter(object):
         result = Assistant(self.client, data['name'])
         return result
 
-    def delete_thread(self, thread_name):
-        thread_id = self.thread_manager.get_known_thread_entry_from_name(thread_name).get_id()
+    def delete_thread(self, thread_id):
         try:
             result = self.client.beta.threads.delete(thread_id)
         except Exception as e:     # openAI - NotFoundError
             print(f"Thread {thread_name} was not found getting error {e.args}")
             return False
         if result.deleted:
-            self.thread_manager.delete_thread(thread_name)
+            self.thread_manager.delete_thread(thread_id)
         return result.deleted               # True/False
 
     # def get_assistant_list(self):

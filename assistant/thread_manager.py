@@ -17,7 +17,7 @@ class ThreadManager(object):
                 usr, thread_name, thread_id, purpose = line  # todo remove use of 'user'
                 tmp = {"user": usr,
                        "name": thread_name,
-                       "thread_id": thread_id,
+                       "id": thread_id,
                        "purpose": purpose,
                        "ww_thread": None}
                 tmp["ww_thread"] = Thread(tmp, self)
@@ -50,8 +50,9 @@ class ThreadManager(object):
         thread = self.client.beta.threads.create()
         thread_id = thread.id
         tmp = {"name": data['name'],
-               "thread_id": thread_id,
+               "id": thread_id,
                "purpose": data['purpose'],
+               "user": data['user'],
                "ww_thread": None}
         tmp["ww_thread"] = Thread(tmp, self)
         self.known_oai_threads.append(tmp)
@@ -92,8 +93,8 @@ class ThreadManager(object):
     def get_grant_builder(self):
         return self.grant_builder
 
-    def delete_thread(self, thread_name):
-        self.known_oai_threads = [x for x in self.known_oai_threads if x['name'] != thread_name]
+    def delete_thread(self, thread_id):
+        self.known_oai_threads = [x for x in self.known_oai_threads if x['id'] != thread_id]
         self.update_thread_file()
 
 
@@ -103,7 +104,7 @@ class Thread(object):
         self.thread_name = data['name']
         self.oai_thread = None
         self.thread_instantiated = False  # means has oai_thread set
-        self.thread_id = data['thread_id']
+        self.thread_id = data['id']
         self.user = data['user']
         self.purpose = data['purpose']
         self.message_list = []

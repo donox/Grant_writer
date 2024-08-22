@@ -7,13 +7,13 @@ function makeListConfigs() {
         assistants: {
             listType: 'assistants',
             fetchUrl: '/get-assistants-list/',
-            detailsUrl: '/get-assistant-details',
+            detailsUrl: '/get-assistant-details/',
             createUrl: '/add-new-assistant/',
             addItem: (data) => createNewItem('assistants', data),
             tableId: 'assistantsTable',
             selectorId: 'assistantSelector',
             newItemText: 'CREATE NEW ASSISTANT',
-            fields: [
+            fields: [                           // fields user must complete for new object
                 {name: 'name', type: 'text', label: 'Name', required: true},
                 {name: 'description', type: 'textarea', label: 'Description'},
                 {name: 'model', type: 'select', label: 'Model', options: ['gpt-3.5-turbo', 'gpt-4']}
@@ -27,7 +27,7 @@ function makeListConfigs() {
         threads: {
             listType: 'threads',
             fetchUrl: '/get-threads-list/',
-            detailsUrl: '/get-thread-details',
+            detailsUrl: '/get-thread-details/',
             createUrl: '/add-new-thread/',
             addItem: (data) => createNewItem('threads', data),
             tableId: 'threadsTable',
@@ -46,7 +46,7 @@ function makeListConfigs() {
         stores: {
             listType: 'stores',
             fetchUrl: '/get-stores-list/',
-            detailsUrl: '/get-store-details',
+            detailsUrl: '/get-store-details/',
             createUrl: '/add-new-store/',
             addItem: (data) => createNewItem('stores', data),
             tableId: 'storesTable',
@@ -54,7 +54,7 @@ function makeListConfigs() {
             newItemText: 'NEW STORE',
             fields: [
                 {name: 'name', type: 'text', label: 'Name', required: true},
-                {name: 'description', type: 'text', label: 'Description'},
+                // {name: 'description', type: 'text', label: 'Description'},
             ],
             columns: ['name', 'id', 'description'],
             onItemClick: (id) => loadItemDetails('stores', id),

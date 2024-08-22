@@ -92,8 +92,8 @@ class ClientInterface(object):
         result = self.command_processor.cmd_get_thread_messages(thread)
         return result
 
-    def cmd_delete_thread(self, thread_name):
-        result = self.command_processor.cmd_delete_thread(thread_name)
+    def cmd_delete_thread(self, thread_id):
+        result = self.command_processor.cmd_delete_thread(thread_id)
         return result
 
     def cmd_delete_assistant(self, assistant_id):

@@ -32,7 +32,7 @@ function deleteThread(threadId) {
             .then(data => {
                 if (data.success) {
                     alert('thread deleted successfully');
-                    get_list_of_threads(); // Refresh the list
+                    getList('threads') // Refresh the list x
                 } else {
                     alert('Failed to delete thread: ' + (data.message || 'Unknown error'));
                 }
