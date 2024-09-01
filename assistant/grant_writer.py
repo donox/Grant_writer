@@ -42,10 +42,6 @@ class GrantWriter(object):
             return True
         return False
 
-    def create_vector_store(self, name, vector_store_id=None):
-        vs = VectorStoreManager(self.client, name, vs_id=vector_store_id)
-        self.vector_store_list.append(vs)
-        return vs
 
     def get_client(self):
         return self.client      # client is an OpenAI object, not an assistant

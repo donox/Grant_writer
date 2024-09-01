@@ -13,6 +13,17 @@ function loadThreadDetails(threadId, isNew) {
         .catch(error => console.error('Error loading thread details:', error));
 }
 
+function displayThreadDetails(thread) {
+    $('#threadDetails').show();
+    const form = $('#threadForm');
+    form.empty();
+
+    listConfigs.threads.detailFields.forEach(field => {
+        const fieldHtml = createFieldHtml(field, thread[field.name]);
+        form.append(fieldHtml);
+    });
+}
+
 //    
 // function displayAssistantDetails(assistant) {
 // 

@@ -18,30 +18,45 @@
 
 function displayAssistantDetails(assistant) {
     $('#assistantDetails').show();
-    $('#assistantName').val(assistant.name);
-    $('#assistantId').val(assistant.id);
-    $('#assistantInstructions').val(assistant.instructions);
+    const form = $('#assistantForm');
+    form.empty();
 
-    // Add more fields as necessary
+    listConfigs.assistants.detailFields.forEach(field => {
+        const fieldHtml = createFieldHtml(field, assistant[field.name]);
+        form.append(fieldHtml);
+    });
 }
 
-function clearAssistantDetails() {
-    $('#assistantName').text('');
-    $('#assistantId').text('');
-    $('#assistantInstructions').val('');
-    // Clear more fields as necessary
+function createFieldHtml(field, value) {
+    let inputHtml;
+    if (field.type === 'textarea') {
+        inputHtml = `<textarea id="${field.name}" name="${field.name}" class="form-control" ${field.required ? 'required' : ''} ${field.readonly ? 'readonly' : ''}>${value || ''}</textarea>`;
+    } else if (field.type === 'select') {
+        const options = field.options.map(option =>
+            `<option value="${option}" ${option === value ? 'selected' : ''}>${option}</option>`
+        ).join('');
+        inputHtml = `<select id="${field.name}" name="${field.name}" class="form-control" ${field.required ? 'required' : ''} ${field.readonly ? 'readonly' : ''}>${options}</select>`;
+    } else {
+        inputHtml = `<input type="${field.type}" id="${field.name}" name="${field.name}" value="${value || ''}" class="form-control" ${field.required ? 'required' : ''} ${field.readonly ? 'readonly' : ''}>`;
+    }
 
-    // Hide the assistant details section
-    $('#assistantDetails').hide();
+    return `
+        <div class="form-group">
+            <label for="${field.name}">${field.label}:</label>
+            ${inputHtml}
+        </div>
+    `;
 }
 
-function updateAssistantDetails() {
-    let assistantId = $('#assistantId').val();
-    let updatedData = {
-        name: $('#assistantName').val(),
-        instructions: $('#assistantInstructions').val(),
-        // Add more fields as necessary
-    };
+function updates() {
+    const assistantId = $('#id').val();
+    const updatedData = {};
+
+    listConfigs.assistants.detailFields.forEach(field => {
+        if (!field.readonly) {
+            updatedData[field.name] = $(`#${field.name}`).val();
+        }
+    });
 
     fetch(`/update-assistant/${assistantId}`, {
         method: 'POST',
@@ -54,7 +69,7 @@ function updateAssistantDetails() {
         .then(data => {
             if (data.success) {
                 alert('Assistant updated successfully');
-               getList('assistants'); // Refresh the list
+                getList('assistants'); // Refresh the list
             } else {
                 alert('Failed to update assistant: ' + (data.message || 'Unknown error'));
             }
@@ -64,6 +79,56 @@ function updateAssistantDetails() {
             alert('An error occurred while updating the assistant');
         });
 }
+
+
+// function displayAssistantDetails(assistant) {
+//     $('#assistantDetails').show();
+//     $('#assistantName').val(assistant.name);
+//     $('#assistantId').val(assistant.id);
+//     $('#assistantInstructions').val(assistant.instructions);
+//
+//     // Add more fields as necessary
+// }
+
+function clearAssistantDetails() {
+    $('#assistantName').text('');
+    $('#assistantId').text('');
+    $('#assistantInstructions').val('');
+    // Clear more fields as necessary
+
+    // Hide the assistant details section
+    $('#assistantDetails').hide();
+}
+
+// function updateAssistantDetails() {
+//     let assistantId = $('#assistantId').val();
+//     let updatedData = {
+//         name: $('#assistantName').val(),
+//         instructions: $('#assistantInstructions').val(),
+//         // Add more fields as necessary
+//     };
+//
+//     fetch(`/update-assistant/${assistantId}`, {
+//         method: 'POST',
+//         headers: {
+//             'Content-Type': 'application/json',
+//         },
+//         body: JSON.stringify(updatedData)
+//     })
+//         .then(response => response.json())
+//         .then(data => {
+//             if (data.success) {
+//                 alert('Assistant updated successfully');
+//                getList('assistants'); // Refresh the list
+//             } else {
+//                 alert('Failed to update assistant: ' + (data.message || 'Unknown error'));
+//             }
+//         })
+//         .catch(error => {
+//             console.error('Error updating assistant:', error);
+//             alert('An error occurred while updating the assistant');
+//         });
+// }
 
 function deleteAssistant(assistantId) {
     if (confirm('Are you sure you want to delete this assistant?')) {
@@ -77,7 +142,8 @@ function deleteAssistant(assistantId) {
             .then(data => {
                 if (data.success) {
                     alert('Assistant deleted successfully');
-                    getList('assistants');; // Refresh the list
+                    getList('assistants');
+                    ; // Refresh the list
                 } else {
                     alert('Failed to delete assistant: ' + (data.message || 'Unknown error'));
                 }
@@ -152,3 +218,7 @@ function openAssistantPopup(prohibitedNames, callback) {
 //     openAssistantPopup,
 //     addAssistant
 // };
+
+$(document).ready(function () {
+    $('#updateAssistant').on('click', updateAssistantDetails);
+});

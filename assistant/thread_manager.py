@@ -29,16 +29,36 @@ class ThreadManager(object):
         for thread in self.known_oai_threads:  # Check in case thread was created before grant_builder defined
             ww_thread = thread["ww_thread"]
             ww_thread.set_grant_builder(self.grant_builder)
-            if len(ww_thread.get_id()) > 5:
-                self.verify_thread(ww_thread.get_id())   # TODO: should trap error return
+            thread_id = ww_thread.get_id()
+            if len(thread_id) > 5:          # id will be long string
+                try:
+                    res = self.verify_thread(thread_id)
+                    if not res:
+                        print(f"Warning: Failed to verify thread {thread_id}, Removing from list")
+                        self.delete_thread(thread_id)
+                except Exception as e:
+                    print(f"Warning: Failed to verify thread {thread_id}: {str(e)}")
+
+    def complete_thread_creation(self):
+        """Instantiate known_oai_threads.
+
+        This is necessary to allow setup of client before a Thread is able to instantiate
+        the oai_threads.  The sequence of events is driven as a part of the setup command
+        in the command processor. """
+        if not self.client:
+            raise ValueError("Client has not been created.  Out of sequence setup.")
+        for thread in self.known_oai_threads:
+            x = thread['ww_thread'].get_oai_thread()
+            if not x:
+                raise ValueError(f"unable to instantiate oai_thread: {thread.get_id()}")
 
     def verify_thread(self, thread_id):
-        client = self.grant_builder.get_client()
-        res = client.beta.threads.retrieve(thread_id)
-        if res:
+        try:
+            res = self.client.beta.threads.retrieve(thread_id)
             return True
-        else:
-            raise ValueError(f"Thread {thread_id} does not exist")
+        except Exception as e:
+            print(f"Thread {thread_id} does not exist or couldn't be retrieved: {str(e)}")
+            return False
 
     def get_thread_list(self):
         return self.known_oai_threads
@@ -54,6 +74,7 @@ class ThreadManager(object):
                "purpose": data['purpose'],
                "user": data['user'],
                "ww_thread": None}
+        print(f"THREAD_MANAGER add-new-thread: {data}")
         tmp["ww_thread"] = Thread(tmp, self)
         self.known_oai_threads.append(tmp)
         self.update_thread_file()
@@ -63,13 +84,13 @@ class ThreadManager(object):
         try:
             with open(self.file, 'w') as thread_data:
                 writer = csv.writer(thread_data)
-                rows_written = []  # Hack to try to stop proliferation of copies
+                rows_written = []
                 for row in self.known_oai_threads:
-                    # row:  don,t38,thread_lG0UyYgzw0DmHNffTOOwJPy1,hjgk
-                    row_list = [row[x] for x in row if type(row[x]) is str]
-                    if row_list[1] not in rows_written:
-                        rows_written.append(row_list[1])
-                        writer.writerow(row_list)  # remove reference to thread object
+                    thread_id = row["id"]
+                    if thread_id not in rows_written:
+                        rows_written.append(thread_id)
+                        row_to_write = [row['user'], row['name'], row['id'], row['purpose']]
+                        writer.writerow(row_to_write)
                 thread_data.close()
         except Exception as e:
             print(f"Failure writing threads to file: {e.args}")
@@ -85,6 +106,22 @@ class ThreadManager(object):
                 return thread["ww_thread"]
         print(f"Thread not found: {name}")
         raise ValueError(f"unknown thread name {name}")
+
+    def get_known_thread_by_id(self, thread_id):
+        for thread in self.known_oai_threads:
+            print(f"FIND THREAD SEARCH: {thread['id']} vs. {thread_id}", flush=True)
+            if thread['id'] == thread_id:
+                return thread["ww_thread"]
+        print(f"Thread not found: {thread_id}")
+        raise ValueError(f"unknown thread name {thread_id}")
+
+    def get_object_by_id(self, object_id):
+        """Get thread using generic call."""
+        return self.get_known_thread_by_id(object_id)
+
+    def get_object_from_name(self, object_name):
+        """Get thread using generic call."""
+        return self.get_known_thread_entry_from_name(object_name)
 
     def get_oai_thread(self, thread_id):
         thread = self.grant_builder.get_oai_thread(thread_id)
@@ -234,3 +271,12 @@ class Thread(object):
             if msg.get_message_id() == message_id:
                 return msg
         return None
+
+    def get_content_data(self):
+        res = json.loads(self.oai_thread.to_json())
+        return res
+
+    def to_json(self):
+        res = self.oai_thread.to_json()
+        res['name'] = self.thread_name
+        return res

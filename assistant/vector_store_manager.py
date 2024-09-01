@@ -1,4 +1,5 @@
 from openai import OpenAI
+import json
 
 
 class VectorStoreManager(object):
@@ -23,6 +24,9 @@ class VectorStoreManager(object):
                 break
         return result
 
+    def get_object_by_id(self, object_id):
+        return self.get_vector_store_by_id(object_id)
+
     def get_vector_store_by_name(self, store_name):
         result = None
         for vs in self.vector_store_list():
@@ -34,8 +38,11 @@ class VectorStoreManager(object):
     def get_vector_stores(self):
         return self.vector_store_list
 
-    def get_objects_list(self):             # Support for generic list
+    def get_vector_stores_list(self):
         return self.get_vector_stores()
+
+    def get_objects_list(self):  # Support for generic list
+        return self.get_vector_stores_list()
 
     def get_vector_stores_as_list_of_dictionaries(self):
         result = []
@@ -111,7 +118,14 @@ class VectorStore(object):
                }
         return res
 
+    def get_content_data(self):
+        res = json.loads(self.vector_store.to_json())
+        return res
 
-def get_known_vector_stores():
+    def to_json(self):
+        return self.vector_store.to_json()
+
+
+def get_known_vector_store_ids():
     store_list = OpenAI.beta.vector_stores.list()
     return [x.id for x in store_list]

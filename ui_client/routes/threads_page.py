@@ -22,17 +22,24 @@ def update_thread(thread_id):
     return jsonify({"success": success})
 
 
-@thr.route('/get-thread-details/<thread_id>', methods=['GET'])
-def get_thread_details(thread_id):
-    from ui_client.routes.start import run_setup  # import here to avoid circular import
-    ci = current_app.config['CLIENT_INTERFACE']
-    run_setup(ci)
-
-    thread = ci.cmd_get_thread_from_id(thread_id)
-    if thread:
-        return jsonify(thread.get_content_data())
-    else:
-        return jsonify({"error": "thread not found"}), 404
+# @thr.route('/get-thread-details/<id_type>/<thread_ident>', methods=['GET'])
+# def get_thread_details(id_type, thread_ident):
+#     from ui_client.routes.start import run_setup  # import here to avoid circular import
+#     ci = current_app.config['CLIENT_INTERFACE']
+#     run_setup(ci)
+#     print("OLD GET THREAD")
+#     idt = str.lower(id_type)
+#     if idt == 'id':
+#         thread = ci.cmd_get_object_from_id("threads", thread_ident)  # remove model finder from generic route and make available here
+#     elif idt == 'name':
+#         thread = ci.cmd_get_object_from_name("threads", thread_ident)
+#     else:
+#         return jsonify({"error": f"invalid thread type: {id_type}, must be 'name' or 'id'"})
+#
+#     if thread:
+#         return jsonify(thread.get_content_data())
+#     else:
+#         return jsonify({"error": "thread not found"}), 404
 
 
 # end refactoring

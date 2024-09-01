@@ -7,8 +7,7 @@ import ui_client.routes.messages as message
 import ui_client.routes.assistant_page as assist
 import ui_client.routes.stores_page as store
 import ui_client.routes.threads_page as thread
-from ui_control.command_processor import Commands
-from ui_control.client_interface import ClientInterface
+import ui_client.routes.generics as generics
 
 
 def create_app(secret_key, client_interface, assistant):
@@ -24,6 +23,7 @@ def create_app(secret_key, client_interface, assistant):
     app.register_blueprint(assist.ap)
     app.register_blueprint(store.vect)
     app.register_blueprint(thread.thr)
+    app.register_blueprint(generics.gen)
 
     # Create a file handler
     file_handler = RotatingFileHandler('flask.log', maxBytes=10240, backupCount=10)

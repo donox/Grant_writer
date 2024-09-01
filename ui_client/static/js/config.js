@@ -7,7 +7,7 @@ function makeListConfigs() {
         assistants: {
             listType: 'assistants',
             fetchUrl: '/get-assistants-list/',
-            detailsUrl: '/get-assistant-details/',
+            detailsUrl: '/get-assistants-list-details/',
             createUrl: '/add-new-assistant/',
             addItem: (data) => createNewItem('assistants', data),
             tableId: 'assistantsTable',
@@ -18,7 +18,14 @@ function makeListConfigs() {
                 {name: 'description', type: 'textarea', label: 'Description'},
                 {name: 'model', type: 'select', label: 'Model', options: ['gpt-3.5-turbo', 'gpt-4']}
             ],
-            columns: ['name', 'id', 'description', 'model'],
+            detailFields: [            // fields that may be updated in the underlying object
+                {name: 'name', type: 'text', label: 'Name', required: true},
+                {name: 'id', type: 'text', label: 'ID', readonly: true},
+                {name: 'instructions', type: 'textarea', label: 'Instructions'},
+                {name: 'model', type: 'select', label: 'Model', options: ['gpt-3.5-turbo', 'gpt-4']},
+                {name: 'description', type: 'textarea', label: 'Description'}
+            ],
+            columns: ['name', 'id', 'description', 'model'],  // fields shown in list of objects
             onItemClick: (id) => loadItemDetails('assistants', id),
             onDeleteClick: deleteAssistant,
             onNewItemClick: (existingNames) => openPopup('assistants', existingNames),
@@ -27,7 +34,7 @@ function makeListConfigs() {
         threads: {
             listType: 'threads',
             fetchUrl: '/get-threads-list/',
-            detailsUrl: '/get-thread-details/',
+            detailsUrl: '/get-threads-list-details/',
             createUrl: '/add-new-thread/',
             addItem: (data) => createNewItem('threads', data),
             tableId: 'threadsTable',
@@ -37,11 +44,16 @@ function makeListConfigs() {
                 {name: 'name', type: 'text', label: 'Name', required: true},
                 {name: 'purpose', type: 'text', label: 'Purpose'},
             ],
+            detailFields: [            // fields that may be updated in the underlying object
+                {name: 'name', type: 'text', label: 'Name', required: true},
+                {name: 'id', type: 'text', label: 'ID', readonly: true},
+                {name: 'description', type: 'textarea', label: 'Description'}
+            ],
             columns: ['name', 'id', 'purpose'],
             onItemClick: (id) => loadItemDetails('threads', id),
             onDeleteClick: deleteThread,
             onNewItemClick: (existingNames) => openPopup('threads', existingNames),
-            // displayDetails: displayThreadDetails
+            displayDetails: displayThreadDetails
         },
         stores: {
             listType: 'stores',

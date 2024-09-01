@@ -24,30 +24,18 @@
                 </div>
             </div>
         </div>
-        <div class="row mt-4">
-            <div class="col-12">
-                <div id="assistantDetails" style="display: none;">
-                    <h3>Assistant Details</h3>
-                    <form>
-                        <div class="form-group">
-                            <label for="assistantName">Name:</label>
-                            <input type="text" id="assistantName" class="form-control" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="assistantId">ID:</label>
-                            <input type="text" id="assistantId" class="form-control" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label for="assistantInstructions">Instructions:</label>
-                            <textarea id="assistantInstructions" class="form-control" rows="4"></textarea>
-                        </div>
-                        <!-- Add more fields as necessary -->
-                        <button type="button" id="updateAssistant" class="btn btn-primary mt-3">Update Assistant</button>
-                    </form>
-                </div>
+    <div class="row mt-4">
+        <div class="col-12">
+            <div id="assistantDetails" style="display: none;">
+                <h3>Assistant Details</h3>
+                <form id="assistantForm">
+                    <!-- Fields will be dynamically inserted here -->
+                </form>
+                <button id="updateAssistant" class="btn btn-primary">Update Assistant</button>
             </div>
         </div>
     </div>
+</div>
 
     <!-- Popup for creating new assistant -->
     <div id="popupOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000;">
@@ -87,47 +75,15 @@
 
 <script>
     $(document).ready(function () {
-        // // DEBUG POPUPS
-        // console.log("Document ready. Setting up event listeners.");
-        //
-        // // ['assistants', 'threads', 'stores'].forEach(listType => {
-        //      ['assistants'].forEach(listType => {
-        //     console.log(`Setting up listener for ${listType}`);
-        //     const tableSelector = `#${listType}Table`;
-        //     console.log(`Table selector: ${tableSelector}`);
-        //
-        //     const $table = $(tableSelector);
-        //     if ($table.length) {
-        //         console.log(`Table found for ${listType}`);
-        //         $table.on('click', '.new-item-row', function () {
-        //             console.log(`New ${listType} row clicked`);
-        //             openPopup(listType);
-        //         });
-        //     } else {
-        //         console.error(`Table not found for ${listType}`);
-        //     }
-        // });
-        //
-        // // END DEBUG
 
         // Event listener for the assistant Manager menu item
         $('#assistantManagerMenuItem').on('click', function () {
-            console.log('Click assistantManagerMenuItem');
+            // console.log('Click assistantManagerMenuItem');
             $('#mainContent').load('/assistant-manager-template', function () {
                 initializeAssistantManager();
             });
         });
-
-
     });
-    // $(document).ready(function() {
-    // // Event listener for the Assistant Manager menu item
-    // $('#assistantManagerMenuItem').on('click', function() {
-    //     console.log('Click assistantManagerMenuItem');
-    //     $('#mainContent').load('/assistant-manager-template', function() {
-    //         initializeAssistantManager();
-    //     });
-    // });
 
 
     // function loadAssistantDetails(assistantId) {

@@ -2,6 +2,7 @@ from openai import OpenAI
 from openai import AssistantEventHandler
 from typing_extensions import override
 from pathlib import Path
+import json
 
 
 class AssistantManager(object):
@@ -21,8 +22,11 @@ class AssistantManager(object):
             mgr = Assistant(self.client, assistant_id=assistant.id)
             self.known_assistants.append(mgr)
 
-    def get_objects_list(self):             # Support for generic list
+    def get_assistants_list(self):
         return self.retrieve_existing_assistants()
+
+    def get_objects_list(self):  # Support for generic list
+        return self.get_assistants_list()
 
     def get_assistants_as_list_of_dictionaries(self):
         result = []
@@ -38,9 +42,17 @@ class AssistantManager(object):
         else:
             return None
 
+    def get_object_by_id(self, object_id):
+        return self.get_assistant_from_id(object_id)
+
     def get_assistant_data(self, assistant_id):
         assistant = self.get_assistant_from_id(assistant_id)
         return assistant.get_content_data()
+
+    def update_object_details(self, obj_id, data):
+        asst = self.get_assistant_from_id(obj_id)
+        res = asst.update_assistant(**data)
+        return res
 
     def delete_assistant(self, assistant_id):
         this_assistant = None
@@ -96,9 +108,7 @@ class Assistant(object):
         return self.assistant
 
     def get_content_data(self):
-        res = {"name": self.name,
-               "id": self.id,
-               "instructions": self.assistant.instructions}
+        res = json.loads(self.assistant.to_json())
         return res
 
     def update_assistant(self, description=None, instructions=None, metadata=None, name=None,
@@ -172,6 +182,9 @@ class Assistant(object):
             except Exception as e:
                 return False
         return True
+
+    def to_json(self):
+        return self.assistant.to_json()
 
 
 class EventHandler(AssistantEventHandler):

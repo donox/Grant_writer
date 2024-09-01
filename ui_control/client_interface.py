@@ -3,11 +3,17 @@
 class ClientInterface(object):
     def __init__(self, command_processor):
         self.command_processor = command_processor
-        foo = 3
 
     def cmd_run_setup(self):
         self.command_processor.cmd_setup({})
-        foo = 3
+
+    def cmd_get_object_from_id(self, list_type, obj_id):
+        result = self.command_processor.cmd_get_object_from_id(list_type, obj_id)
+        return result
+
+    def cmd_get_object_from_name(self, list_type, obj_name):
+        result = self.command_processor.cmd_get_object_from_id(list_type, obj_name)
+        return result
 
     def cmd_make_thread_json(self, thread_name):
         result = self.command_processor.cmd_make_thread_json(thread_name)
@@ -38,12 +44,6 @@ class ClientInterface(object):
         result = self.command_processor.cmd_get_text_responses(user, thread_name, assistant_id)
         return result
 
-    # def cmd_add_and_process_query(self, message):         # UNUSED???
-    #     self.cmd_add_user_message(message)
-    #     self.cmd_process_query()
-    #     results = self.cmd_get_last_results()
-    #     return results
-
     def cmd_get_thread_list(self):
         result = self.command_processor.cmd_get_thread_list()
         return result
@@ -61,8 +61,12 @@ class ClientInterface(object):
         return result
 
     def cmd_update_assistant(self, assistant_id, data):
-        result = self.command_processor.cmd_update_assistant(assistant_id, data)
-        return result
+        assistant = self.cmd_get_assistant_from_id(assistant_id)
+        if assistant:
+            result = assistant.update_assistant(**data)
+            return result
+        else:
+            return False
 
     def cmd_add_new_assistant(self, data):
         result = self.command_processor.cmd_add_new_assistant(data)

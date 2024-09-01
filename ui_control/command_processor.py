@@ -6,6 +6,8 @@ from assistant.io_manager import PrintAndSave
 from assistant.thread_manager import ThreadManager, Thread
 from assistant.message_manager import Message
 from assistant.assistant_manager import AssistantManager
+from ui_client.routes.generics import get_object_from_id_kernel, get_object_from_name_kernel, check_setup
+from flask import current_app
 
 
 class Commands(object):
@@ -39,6 +41,7 @@ class Commands(object):
                                    'cmd_update_assistant_instructions': self.cmd_update_assistant_instructions,
                                    'cmd_make_thread_json': self.cmd_make_thread_json,
                                    'cmd_get_assistant_from_id': self.cmd_get_assistant_from_id,
+                                   'cmd_get_object_from_id': self.cmd_get_object_from_id,
                                    }
         self.grant_builder = None
         self.assistant_manager = None
@@ -85,18 +88,35 @@ class Commands(object):
 
     def cmd_setup(self, cmd_dict):
         self.output_manager = PrintAndSave(self.results_path, True)
-        # self.vector_store_id = self.config['keys']['vectorStore']
-        # self.assistant_id = self.config['keys']['assistant']         # !!!!!!!!!!!!!!!!!!!!!!!!!!!
         self.api_key = self.config['keys']['openAIKey']
         self.thread_path = self.config['paths']['threadList']     # We have to keep a list of known threads ourselves
+
         self.thread_manager = ThreadManager(self.thread_path)
         self.grant_builder = GrantWriter(self.api_key, self.output_manager, self.thread_manager)
+        self.client = self.grant_builder.get_client()
+        self.thread_manager.set_grant_builder(self.grant_builder)
+        self.thread_manager.complete_thread_creation()
+        current_app.config['THREAD_MANAGER'] = self.thread_manager
+
         self.assistant_manager = AssistantManager(self.grant_builder)
         self.assistant_manager.retrieve_existing_assistants()
         self.grant_builder.set_assistant_manager(self.assistant_manager)
-        self.thread_manager.set_grant_builder(self.grant_builder)
-        self.client = self.grant_builder.get_client()
+        current_app.config['ASSISTANT_MANAGER'] = self.assistant_manager
+
         self.vector_store_manager = VectorStoreManager(self.client)
+        current_app.config['STORE_MANAGER'] = self.vector_store_manager
+
+    @staticmethod
+    def cmd_get_object_from_id(list_type, obj_id):
+        print(f" COMMAND PROCESSOR: List Type: {list_type}, ID: {obj_id}", flush=True)
+        result = get_object_from_id_kernel(list_type, obj_id)
+        return result
+
+    @staticmethod
+    def cmd_get_object_from_name(list_type, obj_name):
+        print(f" COMMAND PROCESSOR: List Type: {list_type}, name: {obj_name}", flush=True)
+        result = get_object_from_name_kernel(list_type, obj_name)
+        return result
 
     def cmd_make_thread_json(self, thread_name):
         thread = self.thread_manager.get_known_thread_entry_from_name(thread_name)
@@ -104,6 +124,7 @@ class Commands(object):
         return result
 
     def cmd_get_user_threads(self, user):
+        check_setup()
         result = self.thread_manager.get_threads_for_user(user)
         return result
 
@@ -112,6 +133,7 @@ class Commands(object):
         return result
 
     def cmd_update_assistant(self, cmd_dict):
+        check_setup()
         self.grant_builder.update_assistant(**cmd_dict)
 
     def cmd_attach_file_to_assistant(self, cmd_dict):
@@ -171,7 +193,7 @@ class Commands(object):
     def cmd_get_assistant_data(self, assistant_id):
         result = self.assistant_manager.get_assistant_data(assistant_id)
         return result
-    
+
     def cmd_get_store_data(self, store_id):
         vs = self.vector_store_manager.get_vector_store_by_id(store_id)
         if vs:
@@ -216,14 +238,17 @@ class Commands(object):
         return result
 
     def cmd_delete_thread(self, thread_id):
+        check_setup()
         result = self.grant_builder.delete_thread(thread_id)
         return result
 
     def cmd_delete_assistant(self, assistant_id):
+        check_setup()
         result = self.assistant_manager.delete_assistant(assistant_id)
         return result
-    
+
     def cmd_delete_store(self, store_id):
+        check_setup()
         result = self.vector_store_manager.delete_store(store_id)
         return result
 

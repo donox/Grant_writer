@@ -24,6 +24,14 @@ def run_setup(ci):
         current_app.config['RUN_SETUP'] = False
         ci.cmd_run_setup()
 
+# def run_setup_if_needed():
+#     if current_app.config.get('SETUP_DONE', False):
+#         return
+#     ci = client_interface()
+#     if ci:
+#         ci.cmd_run_setup()
+#         current_app.config['SETUP_DONE'] = True
+
 
 @bp.route('/')
 def index():
@@ -61,6 +69,7 @@ def get_assistants_list():
     ci = client_interface()
     run_setup(ci)
     result = ci.cmd_get_assistant_list()
+    print(f"RESULT: {result}")
     return jsonify(result)
 
 
@@ -75,6 +84,7 @@ def get_stores_list():
 @bp.route('/add-new-thread/', methods=['POST'])
 def add_new_thread():
     ci = client_interface()
+    print(f"START: enter add-new-thread")
     run_setup(ci)
     if request.method == 'POST':
         try:
@@ -105,7 +115,8 @@ def add_new_assistant():
             return jsonify(f"Failure: Error decoding json from add thread: {e}")
         result = ci.cmd_add_new_assistant(data)
         if result:
-            return jsonify({'success': True, 'message': 'Operation completed successfully'}), 200
+            asst_id = result.get_id()
+            return jsonify({'success': True, 'id':  asst_id, 'message': 'Operation completed successfully'}), 200
         else:
             return jsonify({
                 'success': False,

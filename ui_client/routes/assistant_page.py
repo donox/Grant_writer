@@ -12,30 +12,30 @@ def assistant_manager_template():
     return render_template('assistant_manager.html')
 
 
-@ap.route('/update-assistant/<assistant_id>', methods=['POST'])
-def update_assistant(assistant_id):
-    from ui_client.routes.start import run_setup  # import here to avoid circular import
-    ci = current_app.config['CLIENT_INTERFACE']
-    run_setup(ci)
-    data = request.json
-    success = ci.cmd_update_assistant(assistant_id, data)
-    return jsonify({"success": success})
+# @ap.route('/update-assistant/<assistant_id>', methods=['POST'])
+# def update_assistant(assistant_id):
+#     from ui_client.routes.start import run_setup  # import here to avoid circular import
+#     ci = current_app.config['CLIENT_INTERFACE']
+#     run_setup(ci)
+#     data = request.json
+#     result = ci.cmd_update_assistant(assistant_id, data)
+#     if result:
+#         return jsonify({"success": result})
+#     else:
+#         return jsonify({"error": "Assistant Update Failed"}), 404
 
 
-@ap.route('/get-assistant-details/<assistant_id>', methods=['GET'])
-def get_assistant_details(assistant_id):
-    from ui_client.routes.start import run_setup  # import here to avoid circular import
-    ci = current_app.config['CLIENT_INTERFACE']
-    run_setup(ci)
-
-    assistant = ci.cmd_get_assistant_from_id(assistant_id)
-    if assistant:
-        return jsonify(assistant.get_content_data())
-    else:
-        return jsonify({"error": "Assistant not found"}), 404
-
-
-# end refactoring
+# @ap.route('/get-assistant-details/<assistant_id>', methods=['GET'])
+# def get_assistant_details(assistant_id):
+#     from ui_client.routes.start import run_setup  # import here to avoid circular import
+#     ci = current_app.config['CLIENT_INTERFACE']
+#     run_setup(ci)
+#
+#     assistant = ci.cmd_get_assistant_from_id(assistant_id)
+#     if assistant:
+#         return jsonify(assistant.get_content_data())
+#     else:
+#         return jsonify({"error": "Assistant not found"}), 404
 
 
 @ap.route("/assistant-processor")
