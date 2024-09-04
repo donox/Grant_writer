@@ -70,7 +70,7 @@ class GrantWriter(object):
         try:
             result = self.client.beta.threads.delete(thread_id)
         except Exception as e:     # openAI - NotFoundError
-            print(f"Thread {thread_name} was not found getting error {e.args}")
+            print(f"Thread {thread_id} was not found getting error {e.args}")
             return False
         if result.deleted:
             self.thread_manager.delete_thread(thread_id)

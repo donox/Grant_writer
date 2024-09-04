@@ -1,4 +1,4 @@
-from flask import abort, render_template, request, redirect, url_for, flash, Blueprint, jsonify, current_app
+from flask import abort,  request, redirect, url_for, flash, Blueprint, jsonify, current_app
 import json
 from ui_client.routes.start import client_interface
 from assistant.assistant_manager import AssistantManager,  Assistant
@@ -18,7 +18,11 @@ def get_model_class(list_type):
         'threads': Thread,
         'stores': VectorStore
     }
-    return model_mapping.get(lt)
+    if lt in model_mapping:
+        return model_mapping.get(lt)
+    else:
+        raise ValueError(f"Invalid Model type: {list_type}")
+
 
 
 def get_model_manager(list_type):
@@ -30,7 +34,10 @@ def get_model_manager(list_type):
         'threads': 'THREAD_MANAGER',
         'stores': 'STORE_MANAGER'
     }
-    return current_app.config[model_mapping[lt]]
+    if lt in model_mapping:
+        return current_app.config[model_mapping[lt]]
+    else:
+        raise ValueError(f"Invalid Model Manager type: {list_type}")
 
 
 def get_object_from_name_kernel(list_type, obj_name):
@@ -94,8 +101,13 @@ def get_list_details(list_type, generic_id):
     model_manager = get_model_manager(list_type)
     model = model_manager.get_object_by_id(generic_id)
     res = json.loads(model.to_json())
-    print(f"DETAILS FOUND: {res}")
-    return res
+    if type(res) is dict:
+        res["success"] = True
+        tmp = jsonify(res)
+        print(f"GET LIST_TYPE DETAILS: {tmp}")
+        return tmp
+    else:
+        return jsonify(f"failure: unable to get details")
 
 
 @gen.route('/get-<list_type>-id-from-name/<object_name>', methods=['GET'])
@@ -106,7 +118,7 @@ def get_id_from_name(list_type, object_name):
     print(f"GET_ID_FROM_NAME: {object_name}")
     model = model_manager.get_object_from_name(object_name)
     if model:
-        tmp = jsonify(f"success: True, id:{model.get_id()}")
+        tmp = jsonify({"success": True, "id": model.get_id()})
         print(f"JSONIFY RESULT: {tmp}", flush=True)
         return tmp
     else:

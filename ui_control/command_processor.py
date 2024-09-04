@@ -87,7 +87,10 @@ class Commands(object):
         self.stop_encountered = True
 
     def cmd_setup(self, cmd_dict):
+        print(f"SETUP_START: {cmd_dict}", flush=True)
         self.output_manager = PrintAndSave(self.results_path, True)
+        baz = current_app.config
+        print(f"SETUP: {baz}", flush=True)
         self.api_key = self.config['keys']['openAIKey']
         self.thread_path = self.config['paths']['threadList']     # We have to keep a list of known threads ourselves
 

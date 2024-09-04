@@ -7,7 +7,7 @@ function makeListConfigs() {
         assistants: {
             listType: 'assistants',
             fetchUrl: '/get-assistants-list/',
-            detailsUrl: '/get-assistants-list-details/',
+            detailsUrl: '/get-assistants-details/',
             createUrl: '/add-new-assistant/',
             addItem: (data) => createNewItem('assistants', data),
             tableId: 'assistantsTable',
@@ -34,7 +34,7 @@ function makeListConfigs() {
         threads: {
             listType: 'threads',
             fetchUrl: '/get-threads-list/',
-            detailsUrl: '/get-threads-list-details/',
+            detailsUrl: '/get-threads-details/',
             createUrl: '/add-new-thread/',
             addItem: (data) => createNewItem('threads', data),
             tableId: 'threadsTable',

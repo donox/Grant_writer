@@ -24,14 +24,6 @@ def run_setup(ci):
         current_app.config['RUN_SETUP'] = False
         ci.cmd_run_setup()
 
-# def run_setup_if_needed():
-#     if current_app.config.get('SETUP_DONE', False):
-#         return
-#     ci = client_interface()
-#     if ci:
-#         ci.cmd_run_setup()
-#         current_app.config['SETUP_DONE'] = True
-
 
 @bp.route('/')
 def index():

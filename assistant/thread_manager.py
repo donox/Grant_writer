@@ -30,7 +30,7 @@ class ThreadManager(object):
             ww_thread = thread["ww_thread"]
             ww_thread.set_grant_builder(self.grant_builder)
             thread_id = ww_thread.get_id()
-            if len(thread_id) > 5:          # id will be long string
+            if len(thread_id) > 5:  # id will be long string
                 try:
                     res = self.verify_thread(thread_id)
                     if not res:
@@ -109,15 +109,16 @@ class ThreadManager(object):
 
     def get_known_thread_by_id(self, thread_id):
         for thread in self.known_oai_threads:
-            print(f"FIND THREAD SEARCH: {thread['id']} vs. {thread_id}", flush=True)
             if thread['id'] == thread_id:
                 return thread["ww_thread"]
         print(f"Thread not found: {thread_id}")
         raise ValueError(f"unknown thread name {thread_id}")
 
     def get_object_by_id(self, object_id):
-        """Get thread using generic call."""
-        return self.get_known_thread_by_id(object_id)
+        """Get oai thread using generic call."""
+        thread = self.get_known_thread_by_id(object_id)
+        oai_thread = thread.get_oai_thread()
+        return oai_thread
 
     def get_object_from_name(self, object_name):
         """Get thread using generic call."""

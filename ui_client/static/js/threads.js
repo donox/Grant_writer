@@ -1,4 +1,3 @@
-
 function loadThreadDetails(threadId, isNew) {
     fetch(`/get-thread-details/${threadId}`, {
         method: 'GET',
@@ -8,20 +7,38 @@ function loadThreadDetails(threadId, isNew) {
     })
         .then(response => response.json())
         .then(data => {
+            console.log("DETAILS" + data)
             displaythreadDetails(data);
         })
         .catch(error => console.error('Error loading thread details:', error));
 }
 
+// function displayThreadDetails(thread) {
+//     $('#threadDetails').show();
+//     const form = $('#threadForm');
+//     form.empty();
+//
+//     listConfigs.threads.detailFields.forEach(field => {
+//         const fieldHtml = createFieldHtml(field, thread[field.name]);
+//         console.log("field: " + fieldHtml)
+//         form.append(fieldHtml);
+//     });
+// }
+
 function displayThreadDetails(thread) {
+    console.log("Displaying thread details:", thread);
     $('#threadDetails').show();
     const form = $('#threadForm');
-    form.empty();
-
+    console.log("Form element:", form);
+    let formContent = '';
     listConfigs.threads.detailFields.forEach(field => {
+        console.log("Processing field:", field);
         const fieldHtml = createFieldHtml(field, thread[field.name]);
-        form.append(fieldHtml);
+        console.log("Created field HTML:", fieldHtml);
+        formContent += fieldHtml;
     });
+    form.html(formContent);
+    console.log("Final form contents:", form.html());
 }
 
 //    
@@ -54,7 +71,8 @@ function deleteThread(threadId) {
             });
     }
 }
-//   
+
+//
 // function openAssistantPopup(prohibitedNames, callback) {
 //
 // function addAssistant(assistantData) {

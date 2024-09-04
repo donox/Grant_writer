@@ -20,11 +20,12 @@ def test_thread(driver):
         # Test getting thread details
         print(f"\nGetting details for thread {thread_name}:")
         thread_id_json = driver.get(f'/get-thread-id-from-name/{thread_name}')
-        print(f"JSON: {thread_id_json}, TYPE: {type(thread_id_json)}", flush=True)
-        thread_id_json = json.loads(thread_id_json)
-        print(f"AFTER CONVERT: {thread_id_json}", flush=True)
-        thread_details = driver.get(f'/get-thread-details/{thread_id_json['id']}')
-        print(thread_details)
+        if thread_id_json and 'success' in thread_id_json and thread_id_json['success']:
+            thread_id = thread_id_json['id']
+            thread_details = driver.get(f'/get-thread-details/{thread_id}')
+            print(thread_details)
+        else:
+            print("Failed to get thread ID")
 
         if thread_details and 'id' in thread_details:
             thread_id = thread_details['id']
@@ -33,14 +34,17 @@ def test_thread(driver):
             update_data = {
                 "purpose": "Updated test thread purpose"
             }
-            print(f"\nUpdating thread {thread_id}:")
-            update_result = driver.post(f'/update-thread/{thread_id}', update_data)
-            print(update_result)
-
-            # Test getting updated thread details
-            print(f"\nGetting updated details for thread {thread_name}:")
-            updated_thread_details = driver.get(f'/get-thread-details/{thread_id}')
-            print(updated_thread_details)
+            #   UPDATE THREAD NOT YET IMPLEMENTED - is this the same as add message to thread?????
+            #    NOTE:  there may be updates to the OAI object and separately to the model object.  DO
+            #           we need to discriminate????
+            # print(f"\nUpdating thread {thread_id}:")
+            # update_result = driver.post(f'/update-thread/{thread_id}', update_data)
+            # print(update_result)
+            #
+            # # Test getting updated thread details
+            # print(f"\nGetting updated details for thread {thread_name}:")
+            # updated_thread_details = driver.get(f'/get-thread-details/{thread_id}')
+            # print(updated_thread_details)
 
             # Test deleting thread
             print(f"\nDeleting thread {thread_id}:")
