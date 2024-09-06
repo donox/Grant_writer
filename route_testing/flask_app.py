@@ -10,15 +10,19 @@ config = configparser.ConfigParser()
 with open("/home/don/PycharmProjects/grant_assistant/config_file.cfg") as source:
     config.read(source.name)
 
+
 def create_app():
+    print(f"USING flask_app.py - is this the preferred startup????")
     cmd_path = '/home/don/PycharmProjects/grant_assistant/Temp/commands.json'
     outfile = "/home/don/Documents/Temp/outfile.txt"
     handler = Commands(cmd_path, config, outfile)
     client_ui = ClientInterface(handler)
     flask_key = config['keys']['flaskKey']
     assistant = config['keys']['assistant']
-    app = app_ui(flask_key, client_ui, assistant)
+    path_to_db = config['paths']['dbSQLlite']
+    app = app_ui(flask_key, client_ui, assistant, path_to_db)
     return app
+
 
 if __name__ == "__main__":
     app = create_app()

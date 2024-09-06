@@ -68,6 +68,11 @@ function makeListConfigs() {
                 {name: 'name', type: 'text', label: 'Name', required: true},
                 // {name: 'description', type: 'text', label: 'Description'},
             ],
+            detailFields: [            // fields that may be updated in the underlying object
+                {name: 'name', type: 'text', label: 'Name', required: true},
+                {name: 'id', type: 'text', label: 'ID', readonly: true},
+                {name: 'description', type: 'textarea', label: 'Description'}
+            ],
             columns: ['name', 'id', 'description'],
             onItemClick: (id) => loadItemDetails('stores', id),
             onDeleteClick: deleteStore,

@@ -1,4 +1,6 @@
 from flask import Flask, g
+from db_management.db_utils import close_db_manager
+import sqlite3
 from config import Config
 import logging
 from logging.handlers import RotatingFileHandler
@@ -43,6 +45,9 @@ def create_app(secret_key, client_interface, assistant):
     # Add the handlers to the app's logger
     app.logger.addHandler(file_handler)
     app.logger.addHandler(console_handler)
+
+    # Register the `close_db` function to be called after every request
+    app.teardown_appcontext(close_db_manager)
 
     with app.app_context():
         return app

@@ -8,6 +8,7 @@ from assistant.message_manager import Message
 from assistant.assistant_manager import AssistantManager
 from ui_client.routes.generics import get_object_from_id_kernel, get_object_from_name_kernel, check_setup
 from flask import current_app
+from db_management.db_manager import DatabaseManager
 
 
 class Commands(object):
@@ -15,6 +16,8 @@ class Commands(object):
         self.config = config
         self.command_file_path = command_file_path
         self.results_path = results_path
+        self.db_path = self.config['paths']['dbSQLlite']
+        self.db_processor = None
         self.command_history = []
         self.stop_encountered = False
         self.supported_commands = {'stop': self.cmd_stop,
@@ -87,16 +90,16 @@ class Commands(object):
         self.stop_encountered = True
 
     def cmd_setup(self, cmd_dict):
-        print(f"SETUP_START: {cmd_dict}", flush=True)
         self.output_manager = PrintAndSave(self.results_path, True)
-        baz = current_app.config
-        print(f"SETUP: {baz}", flush=True)
         self.api_key = self.config['keys']['openAIKey']
+
+        # DELETE NEXT WHEN DB WORKING
         self.thread_path = self.config['paths']['threadList']     # We have to keep a list of known threads ourselves
 
         self.thread_manager = ThreadManager(self.thread_path)
         self.grant_builder = GrantWriter(self.api_key, self.output_manager, self.thread_manager)
         self.client = self.grant_builder.get_client()
+
         self.thread_manager.set_grant_builder(self.grant_builder)
         self.thread_manager.complete_thread_creation()
         current_app.config['THREAD_MANAGER'] = self.thread_manager

@@ -16,6 +16,7 @@ from ui_control.command_processor import Commands
 from ui_control.client_interface import ClientInterface
 from ui_client import create_app as app_ui
 from openai import OpenAI
+from db_management.db_manager import DatabaseManager, initialize_database
 
 # from external_sites.manage_google_drive import ManageGoogleDrive
 
@@ -23,18 +24,11 @@ from openai import OpenAI
 # RClone config file in /home/don/.config/rclone/rclone.conf
 
 def driver():
-    # This script runs daily
     do_testing = True
-
-    # start_notest = dt.time(1, 0)     # but not if between 1am and 4am
-    # end_notest = dt.time(4, 0)
-    # if start_notest < dt.datetime.now().time() < end_notest:
-    #     do_testing = False
 
     if do_testing:
         prototyping = False
         run_commands = True
-        run_ui = False
     else:
         prototyping = False
 
@@ -45,46 +39,25 @@ def driver():
     with open("/home/don/PycharmProjects/grant_assistant/config_file.cfg") as source:
         config.read(source.name)
     # Load parameters from configuration file
-    start_date = config['measurement period']['startDate']
-    end_date = config['measurement period']['endDate']
-
-    start_measurement = (dt.datetime.strptime(start_date, "%Y/%m/%d")).date()
-    end_measurement = (dt.datetime.strptime(end_date, "%Y/%m/%d")).date()
 
     dbname = config['database']['dbName']
     dbuser = config['database']['dbUser']
+
+    sqlLite_db = config['paths']['dbSQLlite']
 
     os.curdir = config['paths']['workingDirectory']         # Set current working directory
     work_directory = config['paths']['workingDirectory']
     logs_directory = config['paths']['logsDirectory']
 
-    don_dir = Path('/home/don')                             # Don's home directory
-    don_devel = don_dir / 'devel'                           # Development Directory (the '/' is a path join operator)
-
-    # Linix commands to access Google Drive
-    cmd_rclone = 'rclone -v copyto {} gdriveremote:/RClone/{}'
-    # cmd_save_sst_files = "rclone -v copyto {} 'gdriveremote:/Sunnyside Times/SST Admin/{}'"
-    # cmd_get_sst_files = "rclone -v copy 'gdriveremote:/Sunnyside Times/SST Admin/{}' {}"
-
     summary_logger = BasicLogger('summary_log', logs_directory)     # Logger - see use below
     summary_logger.make_info_entry('Start Summary Log')
 
-    if run_ui:
-        logger = BasicLogger('run_UI', logs_directory)
-        target_directory = work_directory + 'worktemp/'
-        try:
-            flask_key = config['keys']['flaskKey']
-            app = app_ui(flask_key)
-            app.run(debug=True)
 
-        except Exception as e:
-            print(e)
-            traceback.print_exc()
-        logger.close_logger()
     if run_commands:
         logger = BasicLogger('run_commands', logs_directory)
         target_directory = work_directory + 'worktemp/'
         try:
+            print(f"STARTING using driver.py")
             outfile = "/home/don/Documents/Temp/outfile.txt"
             cmd_path = '/home/don/PycharmProjects/grant_assistant/Temp/commands.json'
             handler = Commands(cmd_path, config, outfile)

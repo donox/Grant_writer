@@ -1,6 +1,7 @@
 from openai import OpenAI
 from openai import AssistantEventHandler
 from typing_extensions import override
+from db_management.db_manager import DatabaseManager, DBAssistant
 from pathlib import Path
 import json
 
@@ -9,7 +10,7 @@ class AssistantManager(object):
     def __init__(self, grant_builder):
         self.grant_builder = grant_builder
         self.client = self.grant_builder.get_client()  # OAI c
-        self.known_assistants = []
+        self.known_assistants = []   # Not OAI assistants
 
     def create_assistant(self, name):
         assistant = Assistant(self.grant_builder, name=name)
@@ -77,26 +78,26 @@ class Assistant(object):
     def __init__(self, client, name=None, assistant_id=None):
         self.client = client
         self.name = name
-        self.assistant = None
+        self.oai_assistant = None
         self.id = assistant_id
         self.vector_stores = []  # List of vector_store_managers
         self.uploaded_files = []
 
         if self.id:
             try:
-                self.assistant = self.client.beta.assistants.retrieve(self.id)
-                self.name = self.assistant.name
+                self.oai_assistant = self.client.beta.assistants.retrieve(self.id)
+                self.name = self.oai_assistant.name
             except Exception as e:
                 print(f"Not Found: {self.id}")
         else:
-            self.assistant = self.client.beta.assistants.create(
+            self.oai_assistant = self.client.beta.assistants.create(
                 name=self.name,
                 instructions=None,
                 tools=[{"type": "file_search"}],
                 tool_resources={"file_search": {"vector_store_ids": []}},
                 model="gpt-4o",
             )
-            self.id = self.assistant.id
+            self.id = self.oai_assistant.id
 
     def get_id(self):
         return self.id
@@ -105,15 +106,15 @@ class Assistant(object):
         return self.name
 
     def get_oai_assistant(self):
-        return self.assistant
+        return self.oai_assistant
 
     def get_content_data(self):
-        res = json.loads(self.assistant.to_json())
+        res = json.loads(self.oai_assistant.to_json())
         return res
 
     def update_assistant(self, description=None, instructions=None, metadata=None, name=None,
                          response_format=None, temperature=None, tool_resources=None, tools=None, top_p=None, **kwargs):
-        params = {"assistant_id": self.assistant.id}
+        params = {"assistant_id": self.oai_assistant.id}
         if description:
             params["description"] = description
         if instructions:
@@ -133,7 +134,7 @@ class Assistant(object):
         if top_p:
             params["top_p"] = top_p
         try:
-            self.assistant = self.client.beta.assistants.update(**params)
+            self.oai_assistant = self.client.beta.assistants.update(**params)
         except Exception as e:
             print(f"Failure updating assistant: {e.args}")
             return False
@@ -143,8 +144,8 @@ class Assistant(object):
         """Add vector store to an assistant."""
         self.vector_stores.append(vector_store)
         vs_ids = [x.get_vector_store_id() for x in self.vector_stores]
-        self.assistant = self.client.beta.assistants.update(
-            assistant_id=self.assistant.id,
+        self.oai_assistant = self.client.beta.assistants.update(
+            assistant_id=self.oai_assistant.id,
             tool_resources={"file_search": {"vector_store_ids": vs_ids}}
         )
 
@@ -184,7 +185,7 @@ class Assistant(object):
         return True
 
     def to_json(self):
-        return self.assistant.to_json()
+        return json.loads(self.oai_assistant.to_json())
 
 
 class EventHandler(AssistantEventHandler):

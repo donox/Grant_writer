@@ -1,7 +1,9 @@
+# ui_client/routes/theads_page.py
 import config
 from flask import render_template, request, redirect, url_for, flash, Blueprint, jsonify, current_app
 import json
 from ui_client.routes.start import client_interface
+from db_management.db_utils import get_db_manager
 
 thr = Blueprint("thread", __name__)
 
@@ -15,6 +17,7 @@ def thread_manager_template():
 @thr.route('/update-thread/<thread_id>', methods=['POST'])
 def update_thread(thread_id):
     from ui_client.routes.start import run_setup  # import here to avoid circular import
+    db_manager = get_db_manager()
     ci = current_app.config['CLIENT_INTERFACE']
     run_setup(ci)
     data = request.json

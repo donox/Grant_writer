@@ -1,14 +1,18 @@
 import json
 import csv
 from assistant.message_manager import Message
+from db_management.db_manager import DBThread
+from db_management.db_utils import get_db_manager
 
 
 class ThreadManager(object):
     def __init__(self, file_path):
+        self.db_manager = None
         self.grant_builder = None
         self.client = None
         self.file = file_path
         self.known_oai_threads = []  # These are the threads as recorded in the 'database' (survives over runs)
+        self.new_known_oai_threads = []
         with open(self.file, 'r') as thread_data:
             rdr = csv.reader(thread_data)
             for line in rdr:
@@ -22,6 +26,43 @@ class ThreadManager(object):
                        "ww_thread": None}
                 tmp["ww_thread"] = Thread(tmp, self)
                 self.known_oai_threads.append(tmp)
+
+        self.db_manager = get_db_manager()  # Get the DatabaseManager instance
+        threads = DBThread.get_all(self.db_manager)  # Pass the DatabaseManager instance
+        for thread in threads:
+            tmp = {"db_id": thread['id'],
+                   "user": thread['owner'],
+                   "name": thread['name'],
+                   "oai_id": thread['oai_id'],
+                   "purpose": thread['purpose'],
+                   "ww_thread": None}
+            tmp["ww_thread"] = Thread(tmp, self)
+            self.new_known_oai_threads.append(tmp)
+
+        self.new_update_thread_file()
+
+    def new_update_thread_file(self):
+        try:
+            threads = DBThread.get_all(self.db_manager)
+            current_known_threads = [th['id'] for th in self.known_oai_threads]
+            for thread in threads:
+                if thread['oai_id'] not in current_known_threads:
+                    DBThread.delete(thread['id'])
+            db_threads = [th['id'] for th in threads]
+            for thread in self.new_known_oai_threads:
+                if thread not in db_threads:
+                    thread_json = thread.to_json()
+                    fields = {
+                        "name": thread_json['name'],
+                        "id": thread_json['id'],
+                        "purpose": thread_json['purpose'],
+                        "owner": thread_json['owner'],
+                        "extra_data": None
+                    }
+                    DBThread.create(fields)
+        except Exception as e:
+            print(f"Failure writing threads to file: {e.args}")
+            raise e
 
     def set_grant_builder(self, grant_builder):  # Needed to avoid circular import with ThreadManager
         self.grant_builder = grant_builder
@@ -115,10 +156,10 @@ class ThreadManager(object):
         raise ValueError(f"unknown thread name {thread_id}")
 
     def get_object_by_id(self, object_id):
-        """Get oai thread using generic call."""
+        """Get thread using generic call."""
         thread = self.get_known_thread_by_id(object_id)
-        oai_thread = thread.get_oai_thread()
-        return oai_thread
+        # oai_thread = thread.get_oai_thread()
+        return thread
 
     def get_object_from_name(self, object_name):
         """Get thread using generic call."""
@@ -278,6 +319,9 @@ class Thread(object):
         return res
 
     def to_json(self):
-        res = self.oai_thread.to_json()
+        """Make JSON object with fields from OAI object and additional fields unique to object type."""
+        res = json.loads(self.oai_thread.to_json())
         res['name'] = self.thread_name
+        res['description'] = self.purpose
+        print(f"THREAD TO JSON: {res}")
         return res

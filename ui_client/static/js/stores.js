@@ -18,11 +18,13 @@ function loadStoreDetails(storeId, isNew) {
 
 function displayStoreDetails(store) {
     $('#storeDetails').show();
-    $('#storeName').val(store.name);
-    $('#storeId').val(store.id);
-    $('#storeInstructions').val(store.instructions);
-
-    // Add more fields as necessary
+    const form = $('#storeForm');
+    let formContent = '';
+    listConfigs.stores.detailFields.forEach(field => {
+        const fieldHtml = createFieldHtml(field, store[field.name]);
+        formContent += fieldHtml;
+    });
+    form.html(formContent);
 }
 
 function clearStoreDetails() {

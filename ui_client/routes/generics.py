@@ -24,7 +24,6 @@ def get_model_class(list_type):
         raise ValueError(f"Invalid Model type: {list_type}")
 
 
-
 def get_model_manager(list_type):
     lt = list_type    # allow model to be singular or plural
     if lt[-1] != 's':
@@ -100,11 +99,11 @@ def get_list_details(list_type, generic_id):
     check_setup()
     model_manager = get_model_manager(list_type)
     model = model_manager.get_object_by_id(generic_id)
-    res = json.loads(model.to_json())
+    res = model.to_json()
+
     if type(res) is dict:
         res["success"] = True
         tmp = jsonify(res)
-        print(f"GET LIST_TYPE DETAILS: {tmp}")
         return tmp
     else:
         return jsonify(f"failure: unable to get details")
