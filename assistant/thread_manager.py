@@ -1,45 +1,59 @@
 import json
 import csv
+import sqlite3
 from assistant.message_manager import Message
 from db_management.db_manager import DBThread
 from db_management.db_utils import get_db_manager
 
 
 class ThreadManager(object):
-    def __init__(self, file_path):
-        self.db_manager = None
+    def __init__(self, db_path):
         self.grant_builder = None
         self.client = None
-        self.file = file_path
-        self.known_oai_threads = []  # These are the threads as recorded in the 'database' (survives over runs)
-        self.new_known_oai_threads = []
-        with open(self.file, 'r') as thread_data:
-            rdr = csv.reader(thread_data)
-            for line in rdr:
-                if len(line) < 4:
-                    break
-                usr, thread_name, thread_id, purpose = line  # todo remove use of 'user'
-                tmp = {"user": usr,
-                       "name": thread_name,
-                       "id": thread_id,
-                       "purpose": purpose,
-                       "ww_thread": None}
+        self.db_path = db_path
+        self.known_oai_threads = []
+        self.initialize_database()
+        self.load_threads_from_database()
+
+    def initialize_database(self):
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS threads (
+                    id TEXT PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    owner TEXT NOT NULL,
+                    purpose TEXT
+                )
+            ''')
+            conn.commit()
+
+    def load_threads_from_database(self):
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM threads")
+            rows = cursor.fetchall()
+            for row in rows:
+                thread_id, name, owner, purpose = row
+                tmp = {
+                    "owner": owner,
+                    "name": name,
+                    "id": thread_id,
+                    "purpose": purpose,
+                    "ww_thread": None
+                }
                 tmp["ww_thread"] = Thread(tmp, self)
                 self.known_oai_threads.append(tmp)
 
-        self.db_manager = get_db_manager()  # Get the DatabaseManager instance
-        threads = DBThread.get_all(self.db_manager)  # Pass the DatabaseManager instance
-        for thread in threads:
-            tmp = {"db_id": thread['id'],
-                   "user": thread['owner'],
-                   "name": thread['name'],
-                   "oai_id": thread['oai_id'],
-                   "purpose": thread['purpose'],
-                   "ww_thread": None}
-            tmp["ww_thread"] = Thread(tmp, self)
-            self.new_known_oai_threads.append(tmp)
-
-        self.new_update_thread_file()
+    def update_thread_file(self):
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            for thread in self.known_oai_threads:
+                cursor.execute('''
+                    INSERT OR REPLACE INTO threads (id, name, owner, purpose)
+                    VALUES (?, ?, ?, ?)
+                ''', (thread['id'], thread['name'], thread['owner'], thread['purpose']))
+            conn.commit()
 
     def new_update_thread_file(self):
         try:
@@ -110,34 +124,84 @@ class ThreadManager(object):
     def add_new_thread(self, data):
         thread = self.client.beta.threads.create()
         thread_id = thread.id
-        tmp = {"name": data['name'],
-               "id": thread_id,
-               "purpose": data['purpose'],
-               "user": data['user'],
-               "ww_thread": None}
-        print(f"THREAD_MANAGER add-new-thread: {data}")
+        tmp = {
+            "name": data['name'],
+            "id": thread_id,
+            "purpose": data['purpose'],
+            "owner": data['owner'],
+            "ww_thread": None
+        }
         tmp["ww_thread"] = Thread(tmp, self)
         self.known_oai_threads.append(tmp)
         self.update_thread_file()
         return True
 
-    def update_thread_file(self):
-        try:
-            with open(self.file, 'w') as thread_data:
-                writer = csv.writer(thread_data)
-                rows_written = []
-                for row in self.known_oai_threads:
-                    thread_id = row["id"]
-                    if thread_id not in rows_written:
-                        rows_written.append(thread_id)
-                        row_to_write = [row['user'], row['name'], row['id'], row['purpose']]
-                        writer.writerow(row_to_write)
-                thread_data.close()
-        except Exception as e:
-            print(f"Failure writing threads to file: {e.args}")
-            raise e
+    def add_preexisting_thread(self, thread_data):
+        """
+        Add a preexisting thread to the database and known_oai_threads list.
 
-    def create_run(self, oai_thread, user, name):
+        :param thread_data: A dictionary containing thread information:
+                            {'id': str, 'name': str, 'user': str, 'purpose': str}
+        :return: True if the thread was added successfully, False otherwise
+        """
+        required_keys = ['id', 'name', 'owner', 'purpose']
+        if not all(key in thread_data for key in required_keys):
+            print("Error: Missing required thread data")
+            return False
+
+        # Check if the thread already exists
+        existing_thread = next((t for t in self.known_oai_threads if t['id'] == thread_data['id']), None)
+        if existing_thread:
+            print(f"Thread with ID {thread_data['id']} already exists")
+            return False
+
+        # Add to known_oai_threads
+        tmp = {
+            "owner": thread_data['owner'],
+            "name": thread_data['name'],
+            "id": thread_data['id'],
+            "purpose": thread_data['purpose'],
+            "ww_thread": None
+        }
+        tmp["ww_thread"] = Thread(tmp, self)
+        self.known_oai_threads.append(tmp)
+
+        # Add to database
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                INSERT OR REPLACE INTO threads (id, name, owner, purpose)
+                VALUES (?, ?, ?, ?)
+            ''', (thread_data['id'], thread_data['name'], thread_data['owner'], thread_data['purpose']))
+            conn.commit()
+
+        print(f"Thread {thread_data['name']} (ID: {thread_data['id']}) added successfully")
+        return True
+
+    def delete_thread(self, thread_id):
+        self.known_oai_threads = [x for x in self.known_oai_threads if x['id'] != thread_id]
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM threads WHERE id = ?", (thread_id,))
+            conn.commit()
+
+    # def update_thread_file(self):
+    #     try:
+    #         with open(self.file, 'w') as thread_data:
+    #             writer = csv.writer(thread_data)
+    #             rows_written = []
+    #             for row in self.known_oai_threads:
+    #                 thread_id = row["id"]
+    #                 if thread_id not in rows_written:
+    #                     rows_written.append(thread_id)
+    #                     row_to_write = [row['owner'], row['name'], row['id'], row['purpose']]
+    #                     writer.writerow(row_to_write)
+    #             thread_data.close()
+    #     except Exception as e:
+    #         print(f"Failure writing threads to file: {e.args}")
+    #         raise e
+
+    def create_run(self, oai_thread, owner, name):
         thread = oai_thread["ww_thread"]
         return thread
 
@@ -172,9 +236,6 @@ class ThreadManager(object):
     def get_grant_builder(self):
         return self.grant_builder
 
-    def delete_thread(self, thread_id):
-        self.known_oai_threads = [x for x in self.known_oai_threads if x['id'] != thread_id]
-        self.update_thread_file()
 
 
 class Thread(object):
@@ -184,7 +245,7 @@ class Thread(object):
         self.oai_thread = None
         self.thread_instantiated = False  # means has oai_thread set
         self.thread_id = data['id']
-        self.user = data['user']
+        self.owner = data['owner']
         self.purpose = data['purpose']
         self.message_list = []
         self.query_list = []
@@ -259,10 +320,10 @@ class Thread(object):
         return res
 
     def build_query_list(self):
-        """Create/update query list  of id's of messages with role=user."""
+        """Create/update query list  of id's of messages with role=owner."""
         self.query_list = []
         for msg in self.message_list:
-            if msg.get_role() == 'user':
+            if msg.get_role() == 'owner':
                 self.query_list.append(msg.get_message_id())
 
     def set_grant_builder(self, gb):  # Defending against Threads created before manager knows builder

@@ -96,7 +96,7 @@ class Commands(object):
         # DELETE NEXT WHEN DB WORKING
         self.thread_path = self.config['paths']['threadList']     # We have to keep a list of known threads ourselves
 
-        self.thread_manager = ThreadManager(self.thread_path)
+        self.thread_manager = ThreadManager(self.db_path)
         self.grant_builder = GrantWriter(self.api_key, self.output_manager, self.thread_manager)
         self.client = self.grant_builder.get_client()
 
@@ -111,6 +111,13 @@ class Commands(object):
 
         self.vector_store_manager = VectorStoreManager(self.client)
         current_app.config['STORE_MANAGER'] = self.vector_store_manager
+
+        # t1 = {'id': 'thread_WNzhwb6RaEn0ufslZlxafJ82', 'name': 'TestWW', 'owner': 'don', 'purpose': 'Explore WW work'}
+        # t2 = {'id': 'thread_0tvkRE6OulYRqRlS4tLue9ik', 'name': 'jstest9', 'owner': 'don', 'purpose': 'test'}
+        # t3 = {'id': 'thread_1kXdtJrhwHZknixfBlllR3CO', 'name': 'Test Thread 936', 'owner': 'don', 'purpose': 'Testing thread operations'}
+        # self.thread_manager.add_preexisting_thread(t1)
+        # self.thread_manager.add_preexisting_thread(t2)
+        # self.thread_manager.add_preexisting_thread(t3)
 
     @staticmethod
     def cmd_get_object_from_id(list_type, obj_id):
@@ -154,8 +161,8 @@ class Commands(object):
         except Exception as e:
             print(f"error in file attachment: {e.args}")
 
-    def cmd_run_query(self, user, thread_name, assistant):
-        if self.grant_builder.create_run(user, thread_name, assistant):   # not False if run completed
+    def cmd_run_query(self, owner, thread_name, assistant):
+        if self.grant_builder.create_run(owner, thread_name, assistant):   # not False if run completed
             thread = self.thread_manager.get_known_thread_entry_from_name(thread_name)
             thread.update_messages()
 
@@ -208,8 +215,8 @@ class Commands(object):
         else:
             return None
 
-    def cmd_create_run(self, user, name, assistant_id):           # IS THIS RIGHT, Can it be deleted?
-        result = self.grant_builder.create_run(user, name, assistant_id)
+    def cmd_create_run(self, owner, name, assistant_id):           # IS THIS RIGHT, Can it be deleted?
+        result = self.grant_builder.create_run(owner, name, assistant_id)
         return result
 
     def cmd_add_message(self, cmd):

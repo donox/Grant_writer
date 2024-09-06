@@ -81,7 +81,7 @@ def add_new_thread():
     if request.method == 'POST':
         try:
             data = json.loads(request.data)
-            data['user'] = 'Don'        # TODO:  REPLACE THIS WITH REAL user
+            data['owner'] = 'Don'        # TODO:  REPLACE THIS WITH REAL user
         except Exception as e:
             print(f"Error decoding json from add thread: {e}", flush=True)
             return jsonify(failure=f"Fails adding thread: {e}")
