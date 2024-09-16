@@ -24,6 +24,12 @@ window.pageConfigs = {
             {selector: '#updateStore', event: 'click', handler: 'updateStoreDetails'}
         ]
     },
+        conversationPage: {
+        lists: ['coversations'],
+        eventListeners: [
+            {selector: '#updateConversation', event: 'click', handler: 'updateConversationDetails'}
+        ]
+    },
     // Add configurations for other pages as needed
 };
 

@@ -1,7 +1,7 @@
 import json
 import csv
 import sqlite3
-from assistant.message_manager import Message
+from assistant.message_class import Message
 from db_management.db_manager import DBThread
 from db_management.db_utils import get_db_manager
 
@@ -11,6 +11,8 @@ class ThreadManager(object):
         self.grant_builder = None
         self.client = None
         self.db_path = db_path
+        # oai_thread is dict with 'name', 'owner', 'id' (actual oai id), 'purpose',
+        #                         'ww_thread' (pointer to thread object)
         self.known_oai_threads = []
         self.initialize_database()
         self.load_threads_from_database()
@@ -213,11 +215,19 @@ class ThreadManager(object):
         raise ValueError(f"unknown thread name {name}")
 
     def get_known_thread_by_id(self, thread_id):
+        """Get thread entry from (non-oai) id."""
         for thread in self.known_oai_threads:
-            if thread['id'] == thread_id:
-                return thread["ww_thread"]
+            if thread['ww_thread'].get_id() == thread_id:
+                return thread
         print(f"Thread not found: {thread_id}")
         raise ValueError(f"unknown thread name {thread_id}")
+
+    def get_known_thread_by_oai_id(self, oai_thread_id):
+        for thread in self.known_oai_threads:
+            if thread['id'] == oai_thread_id:
+                return thread["ww_thread"]
+        print(f"Thread not found: {oai_thread_id}")
+        raise ValueError(f"unknown thread name {oai_thread_id}")
 
     def get_object_by_id(self, object_id):
         """Get thread using generic call."""
@@ -303,27 +313,30 @@ class Thread(object):
         result = []
         for msg in tail_list[1:]:  # just get responses
             result.append(msg.make_message_json())
-        result_id = 'rslt' + tail_list[0].get_message_id()
+        tl_0 = tail_list[0]
+        tl_content = str.strip(tl_0.get_content())
+        result_id = 'rslt' + tl_0.get_message_id()
         res = {
             "id": result_id,
-            "text": tail_list[0].get_content()[0:30],
+            "text": tl_content,
             "state": {
-                "opened": True,
+                "opened": False,
                 "selected": False
             },
             "datums": {
-                "role": tail_list[0].get_role(),
-                "content": tail_list[0].get_content(),
+                "role": tl_0.get_role(),
+                "content": tl_content,
+                "datetime": tl_0.get_time(),
             },
             "children": result,
         }
         return res
 
     def build_query_list(self):
-        """Create/update query list  of id's of messages with role=owner."""
+        """Create/update query list of id's of messages with role=owner."""
         self.query_list = []
         for msg in self.message_list:
-            if msg.get_role() == 'owner':
+            if msg.get_role() == 'user':
                 self.query_list.append(msg.get_message_id())
 
     def set_grant_builder(self, gb):  # Defending against Threads created before manager knows builder
@@ -381,7 +394,7 @@ class Thread(object):
 
     def to_json(self):
         """Make JSON object with fields from OAI object and additional fields unique to object type."""
-        res = json.loads(self.oai_thread.to_json())
+        res = self.get_content_data()
         res['name'] = self.thread_name
         res['description'] = self.purpose
         print(f"THREAD TO JSON: {res}")

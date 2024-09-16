@@ -1,3 +1,5 @@
+import datetime
+
 class Message(object):
     def __init__(self, grant_builder, thread):
         self.grant_builder = grant_builder
@@ -6,6 +8,7 @@ class Message(object):
         self.message_id = None
         self.content = None
         self.role = None
+        self.time = None
         self.attachments = []
         self.files = []
         self.responses = []  # WHY IS THIS NEEDED - never created
@@ -15,7 +18,7 @@ class Message(object):
     def make_message_json(self):
         res = {
             "id": "msg_" + self.message_id,
-            "text": self.content[0:30],
+            "text": str.strip(self.content)[0:30],
             "state": {
                 "opened": True,
                 "selected": False
@@ -23,6 +26,7 @@ class Message(object):
             "datums": {
                 "role": self.role,
                 "content": self.content,
+                "datetime": self.time,
             },
             "children": [],
         }
@@ -76,7 +80,6 @@ class Message(object):
         return self.message.thread_id
 
     def create_oai_message(self):
-        foo = 3
         result = self.grant_builder.create_oai_message(self.role, self.content, self.thread, self.attachments)
         return result
 
@@ -89,9 +92,17 @@ class Message(object):
         self.message_id = raw_content['id']
         self.role = raw_content['role']
         self.content = raw_content['content'][0]['text']['value']
+        try:
+            unix_time = raw_content['created_at']
+            self.time = datetime.datetime.fromtimestamp(unix_time).strftime('%m/%d/%y %H:%M')
+        except Exception as e:
+            time = "time unknown"
 
     def get_role(self):
         return self.role
+
+    def get_time(self):
+        return self.time
 
     def get_content(self):
         if not self.content:

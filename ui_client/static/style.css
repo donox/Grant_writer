@@ -52,97 +52,47 @@
 .assistantRoleCSS {
     background-color: #e8d6bf;
 }
-
+/* ########################################## */
+/* START of css for jstree control */
+.btn-expand-collapse {
+    margin-right: 5px;
+    z-index: 2;
+}
 /* Base styles for the tree */
 .jstree-default {
-    font-size: 14px; /* Adjust as needed */
+    font-size: 14px;
+}
+
+/* Ensure checkbox is visible */
+.jstree-default .jstree-checkbox {
+    display: inline-block !important;
+    margin-right: 5px;
+}
+.jstree-node > .jstree-ocl {
+    cursor: pointer;
+}
+
+.jstree-closed > .jstree-anchor > .node-content {
+    display: none;
+}
+
+/* Ensure the jstree icons are visible */
+.jstree-default .jstree-icon,
+.jstree-default .jstree-themeicon {
+    display: inline-block !important;
 }
 
 /* Align the node content */
 .jstree-default .jstree-anchor {
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    height: 24px;
-    line-height: 24px;
-    padding: 0;
+    width: calc(100% - 24px);
+    padding: 5px 5px 5px 0; /* Reduced left padding */
     position: relative;
     z-index: 1;
 }
 
-/* Style the icons */
-.jstree-default .jstree-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    line-height: 24px;
-    margin: 0;
-    padding: 0;
-    vertical-align: top;
-}
-
-/* Adjust the wholerow */
-.jstree-default .jstree-wholerow {
-    height: 24px;
-}
-
-/* Spacing for child nodes */
-.jstree-default .jstree-children {
-    margin-left: 18px;
-}
-
-/* Ensure text doesn't wrap */
-.jstree-default .jstree-anchor > .jstree-themeicon {
-    margin-right: 4px;
-}
-
-/* Adjust node spacing */
-.jstree-default .jstree-node {
-    min-height: 24px;
-    line-height: 24px;
-    margin: 0;
-    padding: 0;
-}
-
-/* Remove default list styling but keep bullets */
-.jstree-default ul {
-    margin: 0;
-    padding: 0;
-}
-
-.jstree-default li {
-    margin: 0;
-    padding: 0;
-    min-height: 24px;
-}
-
-/* Ensure proper alignment of the open/close icon */
-.jstree-default .jstree-ocl {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    vertical-align: top;
-}
-
-/* Adjust anchor padding to account for the open/close icon */
-.jstree-default .jstree-anchor {
-    padding-left: 0;
-}
-
-/* Ensure consistent spacing between nodes */
-.jstree-default .jstree-node {
-    margin-left: 24px;
-}
-
-/* Remove left margin for top-level nodes */
-.jstree-default > .jstree-container-ul > .jstree-node {
-    margin-left: 0;
-}
-
-/* Restore default jsTree bullets */
+/*  Ensure proper spacing for checkbox and expand/collapse button */
 .jstree-default .jstree-icon:empty {
     width: 24px;
     height: 24px;
@@ -150,34 +100,78 @@
     font-size: 24px;
 }
 
-/* Remove extra space between nodes */
-.jstree-default .jstree-node,
+/* Style for the node-content container */
+.node-content {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    margin: 5px 0;
+    margin-left: 5px;
+    background-color: #f9f9f9;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+/* Style for the node attributes section */
+.node-attributes {
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+/* Style for the action buttons */
+.node-actions {
+    margin-bottom: 10px;
+}
+
+.node-actions button {
+    margin-right: 5px;
+    margin-bottom: 5px;
+}
+
+/* Style for the editable content block */
+.node-editor {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-top: 10px;
+    min-height: 50px;
+    background-color: #fff;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: auto;
+    max-height: 200px;
+}
+
+/* Ensure proper spacing between nodes */
+.jstree-node {
+    margin: 10px 0;
+    min-height: auto;
+}
+
+/* Adjust spacing for child nodes */
+.jstree-children {
+    margin-left: 24px;
+}
+
+/* Style for expanded nodes */
+.jstree-open > .jstree-anchor .node-content {
+    border-left: 2px solid #007bff;
+}
+
+/* Add some transition for smooth opening/closing */
+.jstree-node, .jstree-children, .jstree-container-ul {
+    transition: all 0.3s ease-in-out;
+}
+
+/* Ensure the jstree container allows for full content display */
+#conversationTree {
+    overflow: visible;
+    min-height: 200px;
+}
+
+/* Ensure the expand/collapse icon is visible and clickable */
 .jstree-default .jstree-icon {
-    /*background-image: url('path/to/32px.png');*/
-}
-
-.jstree-default .jstree-node {
-    background-position: -292px -4px;
-    background-repeat: repeat-y;
-}
-
-.jstree-default .jstree-last {
-    background: transparent;
-}
-
-/* file-browser */
-
-#file-browser {
-    display: none;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: white;
-    border: 1px solid black;
-    padding: 20px;
-}
-    /* assistant support */
-.assistantRow.selected {
-    background-color: #e0e0e0;
+    width: 24px;
+    height: 24px;
+    line-height: 24px;
+    margin-right: 5px;
 }

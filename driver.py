@@ -11,7 +11,7 @@ from assistant.grant_writer import GrantWriter   # , WriterAssistant
 from assistant.io_manager import PrintAndSave
 from assistant.vector_store_manager import VectorStoreManager
 from assistant.file_manager import FileManager
-from assistant.message_manager import Message
+from assistant.message_class import Message
 from ui_control.command_processor import Commands
 from ui_control.client_interface import ClientInterface
 from ui_client import create_app as app_ui

@@ -2,7 +2,7 @@ import json
 import time
 from typing import List, Any
 from openai import OpenAI
-from assistant.message_manager import Message
+from assistant.message_class import Message
 from assistant.thread_manager import Thread
 from assistant.assistant_manager import Assistant, AssistantManager
 
@@ -34,14 +34,13 @@ class GrantWriter(object):
         return message
 
     def update_message(self, message_id, role, thread_name, content):
-        foo = 3
+        foo = 3    # oai update_message below is broken/does not exist???????????????
         thread = self.thread_manager.get_known_thread_entry_from_name(thread_name)
         msg = thread.get_message_from_id(message_id)
         if msg:
             msg.update_message(message_id, role, thread.get_id(), content)
             return True
         return False
-
 
     def get_client(self):
         return self.client      # client is an OpenAI object, not an assistant

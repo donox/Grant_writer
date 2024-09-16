@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+
+{% block title %}Conversation Manager{% endblock %}
+
+{% block content %}
+
+<style>
+    /* Custom fixed width for the left column of the viewport*/
+    .left-column {
+        width: 250px; /* Fixed width for the left column */
+    }
+
+    /* Right column will take the rest of the viewport space */
+    .right-column {
+        flex: 1; /* Let it fill the remaining space */
+    }
+
+    #popupOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #popupForm {
+        background: white;
+        padding: 20px;
+        border-radius: 5px;
+        width: 300px;
+        text-align: center;
+    }
+
+    #conversationTree {
+        border: 1px solid #ccc;
+        padding: 10px;
+        min-height: 100px;
+    }
+
+    /* CSS goes here */
+
+    /* Fix for node content overlap */
+    .node-content {
+        padding: 10px;
+        border: 1px solid #ddd;
+        margin-bottom: 20px; /* Space between nodes */
+        background-color: #f9f9f9;
+        width: 100%;
+        box-sizing: border-box;
+        display: block; /* Block-level element */
+        position: relative; /* Relative positioning */
+    }
+
+    /* Ensure each node has enough space */
+    .jstree-node {
+        margin-bottom: 30px; /* Increase margin to separate nodes */
+        display: block; /* Ensure block-level behavior */
+        clear: both; /* Clear float/alignments */
+    }
+
+    /* Editable content area */
+    .node-editor {
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-top: 10px;
+        min-height: 50px;
+        background-color: #fff;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* Resizable container for jstree */
+    #conversationTree {
+        max-height: 500px; /* Initial max height */
+        overflow-y: auto; /* Scroll when content overflows */
+        border: 1px solid #ddd;
+        padding: 10px;
+        background-color: #fafafa;
+        resize: both; /* Allow resizing in both directions */
+        min-width: 300px; /* Minimum width */
+        min-height: 200px; /* Minimum height */
+        box-sizing: border-box; /* Include padding in the size */
+    }
+</style>
+<div id="conversationLayout" class="container-fluid">
+    <div class="row">
+        <button id="selectConversationBtn" class="btn btn-primary">Select a Conversation</button>
+    </div>
+    <div class="row">
+        <div id="conversationManager" class="left-column bg-light">
+            <!-- Header to display selected conversation name -->
+            <h4 id="selectedConversationHeader" style="display: none;"></h4>
+            <!-- jstree container -->
+            <div id="conversationTree" style="margin-top: 20px;"></div>
+        </div>
+        <div id="elementDisplay" class="right-column bg-white">
+        </div>
+    </div>
+</div>
+<!-- Hidden template for rendering node content -->
+<div id="nodeTemplate" style="display: none;">
+    <div class='node-content'>
+        <span class='node-name'></span>
+        <span class='node-attributes'>
+                <span class='node-date'></span>
+                <span class='node-status'></span>
+            </span>
+        <div class='node-actions'>
+            <button class='btn-save'>Save</button>
+            <button class='btn-copy'>Copy to Clipboard</button>
+            <button class='btn-delete'>Delete</button>
+            <button class='btn-close'>Close</button>
+        </div>
+        <div contenteditable='true' class='node-editor'></div>
+    </div>
+</div>
+
+<!-- Popup for selecting a conversation -->
+<div id="popupOverlay" style="display:none;">
+    <div id="popupForm">
+        <h3>Select a Conversation</h3>
+        <select id="conversationSelect">
+            <!-- Options will be dynamically loaded here -->
+        </select>
+        <button id="selectConversationSubmitBtn">Select</button>
+        <button id="closePopupBtn">Cancel</button>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block head_scripts %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/themes/default/style.min.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+
+{% endblock %}
+

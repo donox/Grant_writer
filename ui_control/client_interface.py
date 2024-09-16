@@ -48,6 +48,10 @@ class ClientInterface(object):
         result = self.command_processor.cmd_get_thread_list()
         return result
 
+    def cmd_get_conversation_json(self, conversation_id):
+        result = self.command_processor.cmd_get_conversation_json(conversation_id)
+        return result
+
     def cmd_add_new_thread(self, data):
         result = self.command_processor.cmd_add_new_thread(data)
         return result

@@ -4,7 +4,7 @@ from assistant.file_manager import FileManager
 from assistant.vector_store_manager import VectorStoreManager
 from assistant.io_manager import PrintAndSave
 from assistant.thread_manager import ThreadManager, Thread
-from assistant.message_manager import Message
+from assistant.message_class import Message
 from assistant.assistant_manager import AssistantManager
 from ui_client.routes.generics import get_object_from_id_kernel, get_object_from_name_kernel, check_setup
 from flask import current_app
@@ -180,6 +180,13 @@ class Commands(object):
     def cmd_get_thread_list(self):
         result = self.thread_manager.get_thread_list()
         return result
+
+    def cmd_get_conversation_json(self, conversation_id):
+        thread_dict = self.thread_manager.get_known_thread_by_id(conversation_id)
+        thread = thread_dict['ww_thread']
+        thread.update_messages()
+        tmp = thread.make_thread_jstree_json()
+        return tmp
 
     def cmd_add_new_thread(self, data):
         result = self.thread_manager.add_new_thread(data)

@@ -10,8 +10,8 @@ from assistant.assistant_manager import Assistant, AssistantManager
 from assistant.thread_manager import Thread, ThreadManager
 from assistant.vector_store_manager import VectorStore, VectorStoreManager
 from business_logic_testing.app.models import DataStore
-from business_logic_testing.app.services import GenericService
-from business_logic_testing.app.controller import GenericController
+from business_logic_testing.app.services import GenericService, ThreadService
+from business_logic_testing.app.controller import GenericController, ThreadController
 
 
 class MockFlaskApp:
@@ -38,6 +38,7 @@ def patched_current_app(mock_flask_app):
     with patch('ui_control.command_processor.current_app', mock_flask_app), \
          patch('ui_client.routes.generics.current_app', mock_flask_app):
         yield mock_flask_app
+
 
 @pytest.fixture(scope="session")
 def global_context(patched_current_app):
@@ -75,8 +76,19 @@ def generic_controller(global_context):
     return GenericController(generic_service, global_context)
 
 
-def test_get_model_manager(generic_controller, patched_current_app):
-    result = generic_controller.handle_request('get_model_manager', 'assistant', '1')
+@pytest.fixture
+def thread_controller(global_context):
+    thread_service = ThreadService(global_context)
+    return ThreadController(thread_service, global_context)
+
+
+# def test_get_model_manager(generic_controller, patched_current_app):
+#     result = generic_controller.handle_request('get_model_manager', 'assistant', '1')
+#     assert type(result) == AssistantManager
+
+
+def test_get_conversation_json(thread_controller, patched_current_app):
+    result = thread_controller.handle_request('get_conversation_json', thread_name='TestWW')
     assert type(result) == AssistantManager
 
 # def test_update_item(generic_controller):

@@ -1,5 +1,25 @@
 # app/services.py
 from ui_client.routes.generics import get_model_class, get_model_manager, get_object_from_id, get_id_from_name
+from ui_client.routes.conversations import get_conversation_tree
+
+
+class ThreadService:
+    def __init__(self, global_context):
+        self.ci = global_context["ci"]
+        self.cmd_handler = global_context["cmds"]
+        self.config = global_context["config"]
+
+    def get_conversation_json(self, thread_name):
+        thread_manager = get_model_manager('thread')
+        thread = self.get_known_thread_entry_from_name(thread_name)
+        result = thread.to_json()
+        return result
+
+    def get_known_thread_entry_from_name(self, thread_name):
+        thread_manager = get_model_manager('thread')
+        thread = thread_manager.get_known_thread_entry_from_name(thread_name)
+        return thread
+
 
 
 class GenericService:

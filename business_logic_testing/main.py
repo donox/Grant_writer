@@ -1,12 +1,13 @@
 from app.models import DataStore
-from app.services import GenericService
-from app.controller import GenericController
+from app.services import GenericService, ThreadService
+from app.controller import GenericController, ThreadController
 from ui_control.client_interface import ClientInterface
 from ui_control.command_processor import Commands
 from config import Config
 import configparser
 
-
+#  This configuration is intended to test the service levels of the system, so
+#     NO FLASK APP should be required.
 def main():
     cmd_path = '/home/don/PycharmProjects/grant_assistant/Temp/commands.json'
     outfile = "/home/don/Documents/Temp/outfile.txt"
@@ -17,9 +18,17 @@ def main():
     handler = Commands(cmd_path, config, outfile)
     client_ui = ClientInterface(handler)
 
+    global_context = {}
+    global_context["ci"]  = client_ui
+    global_context["cmds"] = handler
+    global_context["config"] = config
+
     data_store = DataStore()
-    generic_service = GenericService(data_store)
-    controller = GenericController(generic_service)
+    generic_service = GenericService(data_store, global_context)
+    controller = GenericController(generic_service, global_context)
+
+    thread_service = ThreadService(global_context)
+    thread_controller = ThreadController(thread_service, global_context)
 
     # # Simulate some requests
     # print(controller.handle_request('get', 'assistant', '1'))

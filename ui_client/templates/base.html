@@ -10,6 +10,7 @@
     <!--    <link rel="stylesheet" type="text/css"-->
     <!--          href="https://cdnjs.cloudflare.com/ajax/libs/jquery-te/1.4.0/jquery-te.min.css">-->
     <script src="{{ url_for('static', filename='js/tinymce/tinymce.min.js') }}"></script>
+    {% block head_scripts %}{% endblock %}
     ;
 </head>
 <body>
@@ -19,7 +20,7 @@
         <li class="nav-item">
             <a class="nav-link" href="{{ url_for('start.index') }}">All Elements</a>
         </li>
-        <li id="assistantManagerMenuItem"  class="nav-item">
+        <li id="assistantManagerMenuItem" class="nav-item">
             <a class="nav-link" href="{{ url_for('assistant.assistant_processor') }}">Assistants</a>
         </li>
         <li class="nav-item">
@@ -28,8 +29,8 @@
         <li class="nav-item">
             <a class="nav-link" href="{{ url_for('vector.vector_store_processor') }}">Stores</a>
         </li>
-                <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('start.index') }}">Conversations</a>
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('conversation.conversation_processor') }}">Conversations</a>
         </li>
     </ul>
 </nav>
@@ -44,7 +45,6 @@
     {% endwith %}
 </div>
 <div> {% block content %}{% endblock %}</div>
-<div id="jstree"></div>
 
 <script src="{{ url_for('static', filename='js/jstree.min.js') }}"></script>
 <script src="{{ url_for('static', filename='js/file_selector.js') }}"></script>
@@ -65,6 +65,9 @@
 <script src="{{ url_for('static', filename='js/assistants.js') }}"></script>
 <script src="{{ url_for('static', filename='js/threads.js') }}"></script>
 <script src="{{ url_for('static', filename='js/stores.js') }}"></script>
+<script src="{{ url_for('static', filename='js/conversations.js') }}"></script>
+
+{% block scripts %}{% endblock %}
 
 
 </body>

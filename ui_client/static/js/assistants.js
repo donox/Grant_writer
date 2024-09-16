@@ -81,15 +81,6 @@ function updates() {
 }
 
 
-// function displayAssistantDetails(assistant) {
-//     $('#assistantDetails').show();
-//     $('#assistantName').val(assistant.name);
-//     $('#assistantId').val(assistant.id);
-//     $('#assistantInstructions').val(assistant.instructions);
-//
-//     // Add more fields as necessary
-// }
-
 function clearAssistantDetails() {
     $('#assistantName').text('');
     $('#assistantId').text('');
@@ -220,5 +211,7 @@ function openAssistantPopup(prohibitedNames, callback) {
 // };
 
 $(document).ready(function () {
-    $('#updateAssistant').on('click', updateAssistantDetails);
-});
+    $('#updateAssistant').on('click', $(document).on('click', '#updateAssistant', function () {
+        updateAssistantDetails();
+    }));
+})
