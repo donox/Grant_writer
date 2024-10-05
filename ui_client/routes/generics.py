@@ -105,7 +105,7 @@ def get_list_details(list_type, generic_id):
         res["success"] = True
         tmp = jsonify(res)
         return tmp
-    else:
+    else: 
         return jsonify(f"failure: unable to get details")
 
 

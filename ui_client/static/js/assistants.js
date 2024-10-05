@@ -27,26 +27,6 @@ function displayAssistantDetails(assistant) {
     });
 }
 
-function createFieldHtml(field, value) {
-    let inputHtml;
-    if (field.type === 'textarea') {
-        inputHtml = `<textarea id="${field.name}" name="${field.name}" class="form-control" ${field.required ? 'required' : ''} ${field.readonly ? 'readonly' : ''}>${value || ''}</textarea>`;
-    } else if (field.type === 'select') {
-        const options = field.options.map(option =>
-            `<option value="${option}" ${option === value ? 'selected' : ''}>${option}</option>`
-        ).join('');
-        inputHtml = `<select id="${field.name}" name="${field.name}" class="form-control" ${field.required ? 'required' : ''} ${field.readonly ? 'readonly' : ''}>${options}</select>`;
-    } else {
-        inputHtml = `<input type="${field.type}" id="${field.name}" name="${field.name}" value="${value || ''}" class="form-control" ${field.required ? 'required' : ''} ${field.readonly ? 'readonly' : ''}>`;
-    }
-
-    return `
-        <div class="form-group">
-            <label for="${field.name}">${field.label}:</label>
-            ${inputHtml}
-        </div>
-    `;
-}
 
 function updates() {
     const assistantId = $('#id').val();

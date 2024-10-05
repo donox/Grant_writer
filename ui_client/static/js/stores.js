@@ -94,7 +94,7 @@ function deleteStore(storeId) {
 
 function openStorePopup(prohibitedNames, callback) {
 // Show the popup
-    $('#popupStoreOverlay, #popupStoreForm').show();
+    $('#popupStoreOverlay, #popupStoreOverlay').show();
 
     // Clear any previous input
     $('#storeNameInput').val('');
@@ -124,6 +124,42 @@ function openStorePopup(prohibitedNames, callback) {
         $('#popupStoreOverlay, #popupStoreForm').hide();
     });
 }
+
+function fetchFileList(directory) {
+    fetch(`/store_list_files?dir=${encodeURIComponent(directory)}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Network response was not ok (${response.statusText})`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.files) {
+                displayStoreFileList(data.files);
+            } else {
+                console.error('No files found:', data);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching file list:', error);
+        });
+}
+
+function displayStoreFileList(files) {
+    // Create a Bootstrap list group
+    var listGroup = $('<ul class="list-group"></ul>');
+
+    // Iterate over the files and create list items
+    files.forEach(function(file) {
+        var listItem = $('<li class="list-group-item"></li>').text(file);
+        listGroup.append(listItem);
+    });
+
+    // Append the list to a container in your HTML
+    $('#store-file-list').html(listGroup);
+}
+
+
 
 // function addStore(storeData) {
 //     fetch('/add-new-store/', {

@@ -86,6 +86,44 @@ function populateTable(tableElement, data, config) {
     $tbody.append(newItemRow);
 }
 
+function createFieldHtml(field, value) {
+    let inputHtml;
+    if (field.type === 'textarea') {
+        inputHtml = `<textarea id="${field.name}" name="${field.name}" class="form-control" ${field.required ? 'required' : ''} ${field.readonly ? 'readonly' : ''}>${value || ''}</textarea>`;
+    } else if (field.type === 'select') {
+        const options = field.options.map(option =>
+            `<option value="${option}" ${option === value ? 'selected' : ''}>${option}</option>`
+        ).join('');
+        inputHtml = `<select id="${field.name}" name="${field.name}" class="form-control" ${field.required ? 'required' : ''} ${field.readonly ? 'readonly' : ''}>${options}</select>`;
+    } else if (field.type === 'filelist') {
+        // New field type to handle list of items with selection
+        const items = value.map((item, index) => `
+            <li class="list-group-item">
+                <div class="form-check">
+                    <input class="form-check-input" type="${field.selectionType || 'checkbox'}" name="${field.name}" value="${item}" id="${field.name}-${index}" ${field.readonly ? 'disabled' : ''}>
+                    <label class="form-check-label" for="${field.name}-${index}">
+                        ${item}
+                    </label>
+                </div>
+            </li>
+        `).join('');
+        inputHtml = `
+            <ul class="list-group">
+                ${items}
+            </ul>
+        `;
+    } else {
+        inputHtml = `<input type="${field.type}" id="${field.name}" name="${field.name}" value="${value || ''}" class="form-control" ${field.required ? 'required' : ''} ${field.readonly ? 'readonly' : ''}>`;
+    }
+
+    return `
+        <div class="form-group">
+            <label for="${field.name}">${field.label}:</label>
+            ${inputHtml}
+        </div>
+    `;
+}
+
 function populateSelector(selectorElement, data) {
     selectorElement.empty();
 

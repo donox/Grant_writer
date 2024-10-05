@@ -1,6 +1,8 @@
+from flask import current_app
 from openai import OpenAI
 import json
 from db_management.db_manager import DatabaseManager, DBStore
+from utilities.run_curl import execute_curl_command
 
 
 class VectorStoreManager(object):
@@ -99,6 +101,12 @@ class VectorStore(object):
         )
         return file_batch
 
+    def get_list_of_files_in_store(self):
+        vector_store_files = self.client.beta.vector_stores.files.list(
+            vector_store_id=self.oai_vector_store.id
+        )
+        return list(vector_store_files)
+
     def remove_files_from_store(self, list_of_files):
         pass
 
@@ -114,19 +122,20 @@ class VectorStore(object):
     def get_vector_store_name(self):
         return self.store_name
 
-    def get_content_data(self):
-        res = {"name": self.store_name,
-               "id": self.vector_store_id,
-               }
-        return res
-
-    def get_content_data(self):
-        res = json.loads(self.oai_vector_store.to_json())
-        return res
+    # def get_content_data(self):
+    #     res = {"name": self.store_name,
+    #            "id": self.vector_store_id,
+    #            }
+    #     return res
+    #
+    # def get_content_data(self):
+    #     res = json.loads(self.oai_vector_store.to_json())
+    #     return res
 
     def to_json(self):
         res = json.loads(self.oai_vector_store.to_json())
         res['name'] = self.store_name
+        res['files'] = self.get_list_of_files_in_store()
         return res
 
 

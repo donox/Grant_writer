@@ -28,6 +28,7 @@ function makeListConfigs() {
             columns: ['name', 'id', 'description', 'model'],  // fields shown in list of objects
             onItemClick: (id) => loadItemDetails('assistants', id),
             onDeleteClick: deleteAssistant,
+            // onNewItemClick appears to be handled in wonders.js without referring to this config item.   !!!!!!!!!
             onNewItemClick: (existingNames) => openPopup('assistants', existingNames),
             displayDetails: displayAssistantDetails
         },
@@ -71,7 +72,9 @@ function makeListConfigs() {
             detailFields: [            // fields that may be updated in the underlying object
                 {name: 'name', type: 'text', label: 'Name', required: true},
                 {name: 'id', type: 'text', label: 'ID', readonly: true},
-                {name: 'description', type: 'textarea', label: 'Description'}
+                {name: 'description', type: 'textarea', label: 'Description'},
+                {name: 'files',  type: 'filelist', label: 'Vector Store Content',
+                    required: false, readonly: false, selectionType: 'checkbox'}  // 'checkbox' for multiple selection, 'radio' for single selection
             ],
             columns: ['name', 'id', 'description'],
             onItemClick: (id) => loadItemDetails('stores', id),
