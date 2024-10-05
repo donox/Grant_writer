@@ -105,7 +105,13 @@ class VectorStore(object):
         vector_store_files = self.client.beta.vector_stores.files.list(
             vector_store_id=self.oai_vector_store.id
         )
-        return list(vector_store_files)
+        filenames = []
+        for v_file in vector_store_files:
+            fn_id = v_file.id
+            file = self.client.files.retrieve(fn_id)
+            filename = file.filename
+            filenames.append(filename)
+        return filenames
 
     def remove_files_from_store(self, list_of_files):
         pass
@@ -135,7 +141,8 @@ class VectorStore(object):
     def to_json(self):
         res = json.loads(self.oai_vector_store.to_json())
         res['name'] = self.store_name
-        res['files'] = self.get_list_of_files_in_store()
+        v_files = self.get_list_of_files_in_store()
+        res['files'] = v_files
         return res
 
 
