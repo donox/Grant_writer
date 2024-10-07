@@ -10,9 +10,18 @@ function loadStoreDetails(storeId, isNew) {
     })
         .then(response => response.json())
         .then(data => {
+            // Show the button and vector store content section for the selected store
+            $('#removeSelectedFilesBtn').show();
+            $('#vectorStoreContent').show();
             displayStoreDetails(data);
         })
         .catch(error => console.error('Error loading store details:', error));
+}
+// function which turns off the Store Details info if there is no displayed store.
+// (currently not called)
+function resetStoreSelection() {
+    $('#removeSelectedFilesBtn').hide();
+    $('#vectorStoreContent').hide();
 }
 
 
@@ -150,7 +159,7 @@ function displayStoreFileList(files) {
     var listGroup = $('<ul class="list-group"></ul>');
 
     // Iterate over the files and create list items
-    files.forEach(function(file) {
+    files.forEach(function (file) {
         var listItem = $('<li class="list-group-item"></li>').text(file);
         listGroup.append(listItem);
     });
@@ -158,7 +167,6 @@ function displayStoreFileList(files) {
     // Append the list to a container in your HTML
     $('#store-file-list').html(listGroup);
 }
-
 
 
 // function addStore(storeData) {
@@ -191,3 +199,59 @@ function displayStoreFileList(files) {
 //     openAssistantPopup,
 //     addAssistant
 // };
+// Toggle visibility of Stores and StoreDetails sections
+document.addEventListener('DOMContentLoaded', function () {
+    const storesHeader = document.getElementById('storesHeader');
+    const storeDetailsHeader = document.getElementById('storeDetailsHeader');
+    const storesSection = document.getElementById('storesSection');
+    const storeDetailsSection = document.getElementById('storeDetailsSection');
+
+    storesHeader.addEventListener('click', function () {
+        if (storesSection.style.display === 'none') {
+            storesSection.style.display = 'block';
+        } else {
+            storesSection.style.display = 'none';
+        }
+    });
+
+    storeDetailsHeader.addEventListener('click', function () {
+        if (storeDetailsSection.style.display === 'none') {
+            storeDetailsSection.style.display = 'block';
+        } else {
+            storeDetailsSection.style.display = 'none';
+        }
+    });
+});
+
+// Initialize jsTree for Vector Store Content
+$(document).ready(function () {
+
+    // Handle removal of selected files when the button is clicked
+    $('#removeSelectedFilesBtn').on('click', function () {
+        let selectedFiles = $('#fileTree').jstree('get_selected');
+
+        if (selectedFiles.length === 0) {
+            alert('No files selected for removal.');
+            return;
+        }
+
+        // Send the selected file IDs to the backend for removal
+        $.ajax({
+            url: '/remove-vector-store-files',  // The backend should handle this endpoint
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({files: selectedFiles}),
+            success: function (response) {
+                if (response.success) {
+                    alert('Selected files removed successfully.');
+                    $('#fileTree').jstree('refresh');  // Refresh the jsTree to update the file list
+                } else {
+                    alert('Error removing files.');
+                }
+            },
+            error: function () {
+                alert('An error occurred while trying to remove files.');
+            }
+        });
+    });
+});

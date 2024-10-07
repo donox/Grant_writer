@@ -95,7 +95,7 @@ def get_object_from_id(list_type, object_id):
 @gen.route('/get-<list_type>-details/<generic_id>', methods=['GET'])
 def get_list_details(list_type, generic_id):
     """Get details as provided by OAI for a specified object."""
-    print(f"GET xx DETAILS: {list_type}, {generic_id}", flush=True)
+    print(f"GET generic endpoint DETAILS: {list_type}, {generic_id}", flush=True)
     check_setup()
     model_manager = get_model_manager(list_type)
     model = model_manager.get_object_by_id(generic_id)

@@ -40,6 +40,7 @@ class Commands(object):
                                    'cmd_get_assistant_list': self.cmd_get_assistant_list,
                                    'cmd_add_new_assistant': self.cmd_add_new_assistant,
                                    'cmd_get_assistant_data': self.cmd_get_assistant_data,
+                                   'cmd_get_store_data': self.cmd_get_store_data,
                                    'cmd_update_assistant_instructions': self.cmd_update_assistant_instructions,
                                    'cmd_make_thread_json': self.cmd_make_thread_json,
                                    'cmd_get_assistant_from_id': self.cmd_get_assistant_from_id,
@@ -213,13 +214,13 @@ class Commands(object):
         result = self.assistant_manager.get_assistant_data(assistant_id)
         return result
 
-    # def cmd_get_store_data(self, store_id):
-    #     vs = self.vector_store_manager.get_vector_store_by_id(store_id)
-    #     if vs:
-    #         result = vs.get_content_data()
-    #         return result
-    #     else:
-    #         return None
+    def cmd_get_store_data(self, store_id):
+        vs = self.vector_store_manager.get_vector_store_by_id(store_id)
+        if vs:
+            result = vs.get_content_data()
+            return result
+        else:
+            return None
 
     def cmd_create_run(self, owner, name, assistant_id):           # IS THIS RIGHT, Can it be deleted?
         result = self.grant_builder.create_run(owner, name, assistant_id)
