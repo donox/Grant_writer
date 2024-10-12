@@ -113,8 +113,20 @@ class VectorStore(object):
             filenames.append(filename)
         return filenames
 
-    def remove_files_from_store(self, list_of_files):
-        pass
+    def delete_files_from_vector_store(self, list_of_files):
+        try:
+            for file_id in list_of_files:
+                deleted_vector_store_file = self.client.beta.vector_stores.files.delete(
+                    vector_store_id=self.vector_store_id,
+                    file_id=file_id
+                )
+                file_name = deleted_vector_store_file.filename
+                self.client.files.delete(file_name)
+                print(f"Deleted file {file_id} from vector store {self.vector_store_id}: {file_name}")
+            return True
+        except Exception as e:
+            print(f"Error deleting files from vector store {self.vector_store_id}: {e}")
+            return False
 
     def get_vector_store_object(self):
         return self.oai_vector_store

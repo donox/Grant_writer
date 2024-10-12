@@ -111,7 +111,7 @@ def get_list_details(list_type, generic_id):
 
 @gen.route('/get-<list_type>-id-from-name/<object_name>', methods=['GET'])
 def get_id_from_name(list_type, object_name):
-    '''Given a named object, find its id. '''
+    """Given a named object, find its id. """
     check_setup()
     model_manager = get_model_manager(list_type)
     print(f"GET_ID_FROM_NAME: {object_name}")

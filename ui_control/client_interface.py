@@ -92,6 +92,10 @@ class ClientInterface(object):
         result = self.command_processor.cmd_get_store_data(store_id)
         return result
     
+    def cmd_remove_files_from_vector_store(self, store_id, file_ids):
+        result = self.command_processor.cmd_delete_files_from_vector_store(store_id, file_ids)
+        return result
+
     def cmd_create_run(self, user,  name, assistant_id):
         result = self.command_processor.cmd_create_run(user, name, assistant_id)
         return result

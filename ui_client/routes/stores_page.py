@@ -32,6 +32,29 @@ def load_assistant():
             return jsonify(failure=f"Failed to load store {store_id}")
 
 
+@vect.route('/remove-vector-store-files', methods=['POST'])
+def remove_vector_store_files():
+    from ui_client.routes.start import run_setup  # import here to avoid circular import
+    ci = current_app.config['CLIENT_INTERFACE']
+    run_setup(ci)
+
+    data = request.get_json()
+    file_ids = data.get('files', [])
+    store_id = data.get('store_id')
+
+    # Ensure both store_id and file_ids are provided
+    if not store_id or not file_ids:
+        return jsonify({"success": False, "error": "Missing store_id or files"}), 400
+
+    # Call the function from client_interface
+    success = ci.cmd_remove_files_from_vector_store(store_id, file_ids)
+
+    if success:
+        return jsonify({"success": True})
+    else:
+        return jsonify({"success": False, "error": "Failed to remove files"}), 500
+
+
 @vect.route('/delete-store/<store_id>', methods=['DELETE'])
 def delete_thread(store_id):
     ci = client_interface()

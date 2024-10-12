@@ -45,6 +45,7 @@ class Commands(object):
                                    'cmd_make_thread_json': self.cmd_make_thread_json,
                                    'cmd_get_assistant_from_id': self.cmd_get_assistant_from_id,
                                    'cmd_get_object_from_id': self.cmd_get_object_from_id,
+                                   'cmd_delete_files_from_vector_store': self.cmd_delete_files_from_vector_store,
                                    }
         self.grant_builder = None
         self.assistant_manager = None
@@ -218,6 +219,14 @@ class Commands(object):
         vs = self.vector_store_manager.get_vector_store_by_id(store_id)
         if vs:
             result = vs.get_content_data()
+            return result
+        else:
+            return None
+
+    def cmd_delete_files_from_vector_store(self, store_id, file_ids):
+        vs = self.vector_store_manager.get_vector_store_by_id(store_id)
+        if vs:
+            result = vs.delete_files_from_vector_store(file_ids)
             return result
         else:
             return None
