@@ -23,7 +23,7 @@ class VectorStoreManager(object):
         result = None
         for vs in self.vector_store_list:
             if vs.get_vector_store_id() == store_id:
-                result = vs
+                result = {'model': vs}    # generics is expecting a dict
                 break
         return result
 
@@ -155,6 +155,7 @@ class VectorStore(object):
         res['name'] = self.store_name
         v_files = self.get_list_of_files_in_store()
         res['files'] = v_files
+        res['model'] = self
         return res
 
 

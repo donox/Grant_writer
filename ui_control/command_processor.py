@@ -218,7 +218,7 @@ class Commands(object):
     def cmd_get_store_data(self, store_id):
         vs = self.vector_store_manager.get_vector_store_by_id(store_id)
         if vs:
-            result = vs.get_content_data()
+            result = vs['model'].get_content_data()
             return result
         else:
             return None

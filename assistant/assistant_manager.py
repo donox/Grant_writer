@@ -44,7 +44,9 @@ class AssistantManager(object):
             return None
 
     def get_object_by_id(self, object_id):
-        return self.get_assistant_from_id(object_id)
+        asst = self.get_assistant_from_id(object_id)
+        model_dict = {'model': asst}    # generic models are handled as dictionaries
+        return model_dict
 
     def get_assistant_data(self, assistant_id):
         assistant = self.get_assistant_from_id(assistant_id)
@@ -185,7 +187,9 @@ class Assistant(object):
         return True
 
     def to_json(self):
-        return json.loads(self.oai_assistant.to_json())
+        res = json.loads(self.oai_assistant.to_json())
+        res['model'] = self
+        return res
 
 
 class EventHandler(AssistantEventHandler):

@@ -232,6 +232,7 @@ class ThreadManager(object):
     def get_object_by_id(self, object_id):
         """Get thread using generic call."""
         thread = self.get_known_thread_by_id(object_id)
+        thread['model'] = thread['ww_thread']   # make model generic
         # oai_thread = thread.get_oai_thread()
         return thread
 
@@ -397,5 +398,6 @@ class Thread(object):
         res = self.get_content_data()
         res['name'] = self.thread_name
         res['description'] = self.purpose
+        res['model'] = self
         print(f"THREAD TO JSON: {res}")
         return res
