@@ -34,9 +34,14 @@
                 <button id="removeSelectedFilesBtn" class="btn btn-danger mt-2" style="display: none;">Remove Selected
                     Files
                 </button>
-                <div id="vectorStoreContent" style="display: none;">
+                <!--                <div id="vectorStoreContent" style="display: none;">-->
+                <!--                    <h4>Vector Store Content</h4>-->
+                <!--                    <div id="fileTree" class="jstree"></div> &lt;!&ndash; jsTree will render here &ndash;&gt;-->
+                <!--                </div>-->
+                <div id="vectorStoreContent">
                     <h4>Vector Store Content</h4>
-                    <div id="fileTree" class="jstree"></div> <!-- jsTree will render here -->
+                    <div id="fileTree"></div>
+                    <button id="processSelectedFilesBtn" class="btn btn-primary">Process Selected Files</button>
                 </div>
                 <div id="storeDetails" style="display: none;">
                     <div id="storeDetailsSection">
@@ -57,6 +62,7 @@
                             <button type="button" id="updateStore" class="btn btn-primary mt-3">Update Store</button>
                         </form>
                         <div id="store-file-list"></div>
+
                     </div>
 
                 </div>
@@ -64,121 +70,121 @@
         </div>
     </div>
 </div>
-    <!-- Popup for creating new Store -->
+<!-- Popup for creating new Store -->
 
-    <div id="popupOverlay" style="display:none;">
-        <div id="popupForm">
-            <h3 id="popupTitle"></h3>
-            <input type="text" id="nameInput" placeholder="Enter name">
-            <button id="submitBtn">Create</button>
-            <button id="closeBtn">Cancel</button>
-        </div>
+<div id="popupOverlay" style="display:none;">
+    <div id="popupForm">
+        <h3 id="popupTitle"></h3>
+        <input type="text" id="nameInput" placeholder="Enter name">
+        <button id="submitBtn">Create</button>
+        <button id="closeBtn">Cancel</button>
     </div>
-    <style>
-        #StoreManager {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+</div>
+<style>
+    #StoreManager {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
 
-        .table-responsive {
-            overflow-x: auto;
-        }
+    .table-responsive {
+        overflow-x: auto;
+    }
 
-        #Stores tr.selected {
-            background-color: #e0e0e0;
-        }
+    #Stores tr.selected {
+        background-color: #e0e0e0;
+    }
 
+    #StoreDetails {
+        border: 1px solid #ddd;
+        padding: 20px;
+        border-radius: 5px;
+        margin-top: 20px;
+    }
+
+    @media (max-width: 768px) {
         #StoreDetails {
-            border: 1px solid #ddd;
-            padding: 20px;
-            border-radius: 5px;
-            margin-top: 20px;
+            margin-top: 30px;
         }
+    }
+</style>
 
-        @media (max-width: 768px) {
-            #StoreDetails {
-                margin-top: 30px;
-            }
-        }
-    </style>
+<script>
+    $(document).ready(function () {
 
-    <script>
-        $(document).ready(function () {
-
-            // Event listener for the Store Manager menu item
-            $('#StoreManagerMenuItem').on('click', function () {
-                console.log('Click storeManagerMenuItem');
-                $('#mainContent').load('/Store-manager-template', function () {
-                    initializeStoreManager();
-                });
+        // Event listener for the Store Manager menu item
+        $('#StoreManagerMenuItem').on('click', function () {
+            console.log('Click storeManagerMenuItem');
+            $('#mainContent').load('/Store-manager-template', function () {
+                initializeStoreManager();
             });
-
-            // function loadStoreDetails(StoreId) {
-            //     fetch(`/get-Store-details/${StoreId}`, {
-            //         method: 'GET',
-            //         headers: {
-            //             'Content-Type': 'application/json',
-            //         },
-            //     })
-            //     .then(response => response.json())
-            //     .then(data => {
-            //         displayStoreDetails(data);
-            //     })
-            //     .catch(error => console.error('Error loading Store details:', error));
-            // }
-            //
-            // function displayStoreDetails(Store) {
-            //     $('#StoreName').text(Store.name);
-            //     $('#StoreId').text(Store.id);
-            //     $('#StoreInstructions').val(Store.instructions);
-            //     // Add more fields as necessary
-            //
-            //     // Show the Store details section
-            //     $('#StoreDetails').show();
-            // }
-            //
-            // function clearStoreDetails() {
-            //     $('#StoreName').text('');
-            //     $('#StoreId').text('');
-            //     $('#StoreInstructions').val('');
-            //     // Clear more fields as necessary
-            //
-            //     // Hide the Store details section
-            //     $('#StoreDetails').hide();
-            // }
-            //
-            // function updateStoreDetails() {
-            //     let StoreId = $('#StoreId').text();
-            //     let updatedData = {
-            //         name: $('#StoreName').text(),
-            //         instructions: $('#StoreInstructions').val(),
-            //         // Add more fields as necessary
-            //     };
-            //
-            //     fetch(`/update-Store/${StoreId}`, {
-            //         method: 'POST',
-            //         headers: {
-            //             'Content-Type': 'application/json',
-            //         },
-            //         body: JSON.stringify(updatedData)
-            //     })
-            //     .then(response => response.json())
-            //     .then(data => {
-            //         if (data.success) {
-            //             alert('Store updated successfully');
-            //             get_list_of_Stores(); // Refresh the list
-            //         } else {
-            //             alert('Failed to update Store');
-            //         }
-            //     })
-            //     .catch(error => console.error('Error updating Store:', error));
-            // }
         });
-    </script>
 
-    {% endblock %}
+        // function loadStoreDetails(StoreId) {
+        //     fetch(`/get-Store-details/${StoreId}`, {
+        //         method: 'GET',
+        //         headers: {
+        //             'Content-Type': 'application/json',
+        //         },
+        //     })
+        //     .then(response => response.json())
+        //     .then(data => {
+        //         displayStoreDetails(data);
+        //     })
+        //     .catch(error => console.error('Error loading Store details:', error));
+        // }
+        //
+        // function displayStoreDetails(Store) {
+        //     $('#StoreName').text(Store.name);
+        //     $('#StoreId').text(Store.id);
+        //     $('#StoreInstructions').val(Store.instructions);
+        //     // Add more fields as necessary
+        //
+        //     // Show the Store details section
+        //     $('#StoreDetails').show();
+        // }
+        //
+        // function clearStoreDetails() {
+        //     $('#StoreName').text('');
+        //     $('#StoreId').text('');
+        //     $('#StoreInstructions').val('');
+        //     // Clear more fields as necessary
+        //
+        //     // Hide the Store details section
+        //     $('#StoreDetails').hide();
+        // }
+        //
+        // function updateStoreDetails() {
+        //     let StoreId = $('#StoreId').text();
+        //     let updatedData = {
+        //         name: $('#StoreName').text(),
+        //         instructions: $('#StoreInstructions').val(),
+        //         // Add more fields as necessary
+        //     };
+        //
+        //     fetch(`/update-Store/${StoreId}`, {
+        //         method: 'POST',
+        //         headers: {
+        //             'Content-Type': 'application/json',
+        //         },
+        //         body: JSON.stringify(updatedData)
+        //     })
+        //     .then(response => response.json())
+        //     .then(data => {
+        //         if (data.success) {
+        //             alert('Store updated successfully');
+        //             get_list_of_Stores(); // Refresh the list
+        //         } else {
+        //             alert('Failed to update Store');
+        //         }
+        //     })
+        //     .catch(error => console.error('Error updating Store:', error));
+        // }
+    });
+</script>
 
-    {% block head_scripts %}
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/themes/default/style.min.css"/>
+{% endblock %}
 
-    {% endblock %}
+{% block head_scripts %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/themes/default/style.min.css"/>
+
+{% endblock %}

@@ -110,12 +110,12 @@ class VectorStore(object):
             fn_id = v_file.id
             file = self.client.files.retrieve(fn_id)
             filename = file.filename
-            filenames.append(filename)
+            filenames.append({'text': filename, 'id': fn_id, 'children': []})
         return filenames
 
-    def delete_files_from_vector_store(self, list_of_files):
+    def delete_files_from_vector_store(self, list_of_file_ids):
         try:
-            for file_id in list_of_files:
+            for file_id in list_of_file_ids:
                 deleted_vector_store_file = self.client.beta.vector_stores.files.delete(
                     vector_store_id=self.vector_store_id,
                     file_id=file_id

@@ -17,7 +17,7 @@ def vector_store_processor():
 
 
 @vect.route("/load-store/", methods=['POST'])
-def load_assistant():
+def load_assistant():                                     # !!!! BROKEN NAME - is this route used???????
     from ui_client.routes.start import run_setup  # import here to avoid circular import
     ci = current_app.config['CLIENT_INTERFACE']
     run_setup(ci)
