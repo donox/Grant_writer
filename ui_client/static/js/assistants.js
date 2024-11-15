@@ -71,7 +71,7 @@ function clearAssistantDetails() {
     $('#assistantDetails').hide();
 }
 
-// function updateAssistantDetails() {
+// function updateAssistantDetails() {     #  !!!!!  This has been replaced by UpdateAssistant
 //     let assistantId = $('#assistantId').val();
 //     let updatedData = {
 //         name: $('#assistantName').val(),

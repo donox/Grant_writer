@@ -8,6 +8,7 @@ function makeListConfigs() {
             listType: 'assistants',
             fetchUrl: '/get-assistants-list/',
             detailsUrl: '/get-assistants-details/',
+            updateUrl: '/update-assistant/', // URL for updating assistant details
             createUrl: '/add-new-assistant/',
             addItem: (data) => createNewItem('assistants', data),
             tableId: 'assistantsTable',
